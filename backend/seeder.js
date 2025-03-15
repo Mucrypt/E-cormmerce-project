@@ -8,6 +8,8 @@ const User = require('./models/Users')
 const products = require('./data/products')
 const categories = require('./data/categories')
 
+
+
 dotenv.config()
 
 // Connect to MongoDB

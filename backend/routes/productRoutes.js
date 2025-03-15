@@ -1,6 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose')
-const Product = require('../models/Product')
+const Product = require('../models/product') // Change 'Product' to 'product'
 const {
   authMiddleware,
   adminMiddleware,

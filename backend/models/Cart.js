@@ -64,4 +64,7 @@ cartSchema.pre('save', function (next) {
   next()
 })
 
-module.exports = mongoose.model('Cart', cartSchema)
+// Check if the model already exists before defining it
+const Cart = mongoose.models.Cart || mongoose.model('Cart', cartSchema)
+
+module.exports = Cart

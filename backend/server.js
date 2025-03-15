@@ -6,7 +6,13 @@ const userRoutes = require('./routes/userRoutes')
 const categoryRoutes = require('./routes/categoryRoutes')
 const productRoutes = require('./routes/productRoutes')
 const cartRoutes = require('./routes/cartRoutes')
-
+const checkoutRoutes = require('./routes/checkoutRoutes')
+const orderRoutes = require('./routes/orderRoutes')
+const uploadRoutes = require('./routes/uploadRoutes')
+const subscriberRoutes = require('./routes/subscriberRoutes')
+const adminRoutes = require('./routes/adminRoutes')
+const productAdminRoutes = require('./routes/productAdminRoutes')
+const adminOrderRoutes = require('./routes/adminOrderRoutes')
 
 // Load environment variables
 dotenv.config()
@@ -26,20 +32,24 @@ app.get('/', (req, res) => {
   res.status(200).json({ message: 'Server is running' })
 })
 
-// Error handling middleware
+// API Routes
+app.use('/api/users', userRoutes)
+app.use('/api/products', productRoutes)
+app.use('/api/categories', categoryRoutes)
+app.use('/api/cart', cartRoutes)
+app.use('/api/checkout', checkoutRoutes)
+app.use('/api/orders', orderRoutes)
+app.use('/api/upload', uploadRoutes)
+app.use('/api', subscriberRoutes) // Mount subscriberRoutes at /api
+app.use('/api/admin', adminRoutes) // Mount adminRoutes at /api/admin
+app.use('/api/admin', productAdminRoutes) // Mount productAdminRoutes at /api/admin
+app.use('/api/admin/orders', adminOrderRoutes) // Mount adminOrderRoutes at /api/admin/orders
+
+// Error handling middleware (must be after all routes)
 app.use((err, req, res, next) => {
   console.error(`Error: ${err.message}`)
   res.status(500).json({ error: 'Internal Server Error' })
 })
-
-//Api Routes
-app.use('/api/users', userRoutes)
-
-
-//Product Category Routes
-app.use('/api/products', productRoutes)
-app.use('/api/categories', categoryRoutes)
-app.use('/api/cart', cartRoutes)
 
 // Start the server
 const PORT = process.env.PORT || 5000
@@ -47,7 +57,7 @@ const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
 })
 
-// Graceful shutdown
+// Graceful shutdown (handle SIGTERM and SIGINT signals)
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...')
   server.close(() => {

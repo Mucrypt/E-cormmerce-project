@@ -108,7 +108,6 @@ const productsProductsSchema = new mongoose.Schema(
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',
-     
     },
     metaTitle: {
       type: String,
@@ -133,7 +132,6 @@ const productsProductsSchema = new mongoose.Schema(
         customer: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'customer',
-          
         },
         name: {
           type: String,
@@ -203,6 +201,8 @@ const productsProductsSchema = new mongoose.Schema(
   { timestamps: true } // Adds createdAt and updatedAt fields
 )
 
-const Products = mongoose.model('Products', productsProductsSchema)
+// Check if the model already exists before defining it
+const Products =
+  mongoose.models.Products || mongoose.model('Products', productsProductsSchema)
 
 module.exports = Products

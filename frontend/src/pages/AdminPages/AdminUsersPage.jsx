@@ -5,6 +5,10 @@ const AdminUsersPage = () => {
   // State for users
   const [users, setUsers] = useState([])
 
+  // State for loading and error
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+
   // State for the add user modal
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
 
@@ -20,20 +24,37 @@ const AdminUsersPage = () => {
     role: 'Customer', // Default role
   })
 
-  // Fetch users from the backend
+  // Mock API function to fetch users
+  const fetchUsers = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock data
+      const mockUsers = [
+        { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
+        {
+          id: 2,
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          role: 'Customer',
+        },
+      ]
+      setUsers(mockUsers)
+    } catch {
+      setError('Failed to fetch users. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Fetch users on component mount
   useEffect(() => {
     fetchUsers()
   }, [])
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch('/api/users')
-      const data = await response.json()
-      setUsers(data)
-    } catch (error) {
-      console.error('Error fetching users:', error)
-    }
-  }
 
   // Open the add user modal
   const openAddUserModal = () => {
@@ -64,7 +85,7 @@ const AdminUsersPage = () => {
     setFormData({ ...formData, [name]: value })
   }
 
-  // Handle adding a new user
+  // Mock API function to add a new user
   const handleAddUser = async () => {
     if (
       !formData.name ||
@@ -77,12 +98,14 @@ const AdminUsersPage = () => {
     }
 
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      const newUser = await response.json()
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock new user
+      const newUser = {
+        id: users.length + 1, // Generate a new ID
+        ...formData,
+      }
       setUsers([...users, newUser])
       closeAddUserModal()
     } catch (error) {
@@ -90,17 +113,16 @@ const AdminUsersPage = () => {
     }
   }
 
-  // Handle updating user role
+  // Mock API function to update user role
   const handleUpdateRole = async (newRole) => {
     if (!selectedUser) return
 
     try {
-      const response = await fetch(`/api/users/${selectedUser.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      })
-      const updatedUser = await response.json()
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock updated user
+      const updatedUser = { ...selectedUser, role: newRole }
       const updatedUsers = users.map((user) =>
         user.id === updatedUser.id ? updatedUser : user
       )
@@ -111,11 +133,14 @@ const AdminUsersPage = () => {
     }
   }
 
-  // Handle deleting a user
+  // Mock API function to delete a user
   const handleDeleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await fetch(`/api/users/${id}`, { method: 'DELETE' })
+        // Simulate API call delay
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
+        // Mock deletion
         setUsers(users.filter((user) => user.id !== id))
       } catch (error) {
         console.error('Error deleting user:', error)
@@ -138,42 +163,49 @@ const AdminUsersPage = () => {
             <span>Add User</span>
           </button>
         </div>
-        <table className='w-full'>
-          <thead>
-            <tr className='bg-gray-100 text-gray-700'>
-              <th className='text-left p-3'>Name</th>
-              <th className='text-left p-3'>Email</th>
-              <th className='text-left p-3'>Role</th>
-              <th className='text-left p-3'>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr
-                key={user.id}
-                className='border-b hover:bg-gray-50 transition-colors'
-              >
-                <td className='p-3 text-gray-700'>{user.name}</td>
-                <td className='p-3 text-gray-700'>{user.email}</td>
-                <td className='p-3 text-gray-700'>{user.role}</td>
-                <td className='p-3 flex space-x-2'>
-                  <button
-                    onClick={() => openEditRoleModal(user)}
-                    className='text-blue-500 hover:text-blue-700 transition-colors'
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    className='text-red-500 hover:text-red-700 transition-colors'
-                  >
-                    <FaTrash />
-                  </button>
-                </td>
+
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p className='text-red-500'>{error}</p>
+        ) : (
+          <table className='w-full'>
+            <thead>
+              <tr className='bg-gray-100 text-gray-700'>
+                <th className='text-left p-3'>Name</th>
+                <th className='text-left p-3'>Email</th>
+                <th className='text-left p-3'>Role</th>
+                <th className='text-left p-3'>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr
+                  key={user.id}
+                  className='border-b hover:bg-gray-50 transition-colors'
+                >
+                  <td className='p-3 text-gray-700'>{user.name}</td>
+                  <td className='p-3 text-gray-700'>{user.email}</td>
+                  <td className='p-3 text-gray-700'>{user.role}</td>
+                  <td className='p-3 flex space-x-2'>
+                    <button
+                      onClick={() => openEditRoleModal(user)}
+                      className='text-blue-500 hover:text-blue-700 transition-colors'
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className='text-red-500 hover:text-red-700 transition-colors'
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/** Add User Modal */}
@@ -291,7 +323,7 @@ const AdminUsersPage = () => {
                 </button>
                 <button
                   onClick={() => handleUpdateRole(selectedUser.role)}
-                  className='bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors'
+                  className='bg-defaul-button text-white px-4 py-2 rounded-md hover:bg-red-500 transition-colors'
                 >
                   Save Changes
                 </button>
