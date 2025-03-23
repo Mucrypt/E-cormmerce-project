@@ -22,7 +22,7 @@ const products = [
     sku: 'MB1001',
     sizes: [],
     colors: ['Red', 'Black'],
-    collections: ['Outdoor Adventures'],
+    collectionId: 'collectionId1', // Reference to the collection ID
     material: 'Aluminum Frame',
     careInstructions: 'Wipe clean with a damp cloth.',
     gender: 'Unisex',
@@ -74,7 +74,7 @@ const products = [
     sku: 'CT2001',
     sizes: [],
     colors: ['Green', 'Blue'],
-    collections: ['Camping Essentials'],
+    collectionId: 'collectionId2', // Reference to the collection ID
     material: 'Waterproof Polyester',
     careInstructions: 'Air dry after use.',
     gender: 'Unisex',
@@ -126,7 +126,7 @@ const products = [
     sku: 'DS3001',
     sizes: [],
     colors: ['Black'],
-    collections: ['Fitness Essentials'],
+    collectionId: 'collectionId3', // Reference to the collection ID
     material: 'Cast Iron',
     careInstructions: 'Wipe with a dry cloth after use.',
     gender: 'Unisex',
@@ -180,7 +180,7 @@ const products = [
     sku: 'HFC1001',
     sizes: ['50ml', '100ml'],
     colors: [],
-    collections: ['Skincare Essentials'],
+    collectionId: 'collectionId4', // Reference to the collection ID
     material: 'Organic ingredients',
     careInstructions: 'Store in a cool, dry place.',
     gender: 'Unisex',
@@ -234,7 +234,7 @@ const products = [
     sku: 'AOS2001',
     sizes: ['250ml', '500ml'],
     colors: [],
-    collections: ['Haircare Essentials'],
+    collectionId: 'collectionId5', // Reference to the collection ID
     material: 'Argan Oil, Aloe Extract',
     careInstructions: 'Keep away from direct sunlight.',
     gender: 'Unisex',
@@ -286,7 +286,7 @@ const products = [
     sku: 'MLS3001',
     sizes: [],
     colors: ['Red', 'Pink', 'Nude', 'Berry'],
-    collections: ['Makeup Essentials'],
+    collectionId: 'collectionId6', // Reference to the collection ID
     material: 'Paraben-free, Vegan',
     careInstructions: 'Keep in a cool, dry place.',
     gender: 'Female',
@@ -341,7 +341,7 @@ const products = [
     sku: 'CHS1001',
     sizes: [],
     colors: ['Brown', 'Beige'],
-    collections: ['Board Games'],
+    collectionId: 'collectionId7', // Reference to the collection ID
     material: 'Solid Wood',
     careInstructions: 'Wipe with a dry cloth after use.',
     gender: 'Unisex',
@@ -393,7 +393,7 @@ const products = [
     sku: 'SAF2001',
     sizes: [],
     colors: ['Multicolor'],
-    collections: ['Action Figures'],
+    collectionId: 'collectionId8', // Reference to the collection ID
     material: 'ABS Plastic',
     careInstructions: 'Clean with a damp cloth.',
     gender: 'Unisex',
@@ -445,7 +445,7 @@ const products = [
     sku: '3DP3001',
     sizes: [],
     colors: ['Multicolor'],
-    collections: ['Puzzles'],
+    collectionId: 'collectionId9', // Reference to the collection ID
     material: 'Foam Board',
     careInstructions: 'Keep away from water.',
     gender: 'Unisex',
@@ -503,7 +503,7 @@ const products = [
     sku: 'SMPX1001',
     sizes: [],
     colors: ['Black', 'Silver', 'Blue'],
-    collections: ['Smartphones'],
+    collectionId: 'collectionId10', // Reference to the collection ID
     material: 'Aluminum and Glass',
     careInstructions:
       'Use a screen protector and clean with a microfiber cloth.',
@@ -557,7 +557,7 @@ const products = [
     sku: 'GLU2001',
     sizes: [],
     colors: ['Black', 'Red'],
-    collections: ['Laptops'],
+    collectionId: 'collectionId11', // Reference to the collection ID
     material: 'Aluminum Body',
     careInstructions:
       'Keep vents clear and clean the screen with a soft cloth.',
@@ -612,7 +612,7 @@ const products = [
     sku: 'WHN3001',
     sizes: [],
     colors: ['Black', 'White', 'Silver'],
-    collections: ['Accessories'],
+    collectionId: 'collectionId12', // Reference to the collection ID
     material: 'Plastic and Memory Foam',
     careInstructions: 'Store in a case when not in use.',
     gender: 'Unisex',
@@ -668,7 +668,7 @@ const products = [
     sku: 'MLJ1001',
     sizes: ['S', 'M', 'L', 'XL'],
     colors: ['Black', 'Brown'],
-    collections: ['Men’s Wear'],
+    collectionId: 'collectionId13', // Reference to the collection ID
     material: 'Genuine Leather',
     careInstructions: 'Dry clean only.',
     gender: 'Male',
@@ -722,7 +722,7 @@ const products = [
     sku: 'SSC1001',
     sizes: [],
     colors: ['Silver'],
-    collections: ['Cookware'],
+    collectionId: 'collectionId14', // Reference to the collection ID
     material: 'Stainless Steel',
     careInstructions: 'Dishwasher safe, hand wash recommended.',
     gender: 'Unisex',
@@ -776,7 +776,7 @@ const products = [
     sku: 'MSS2001',
     sizes: [],
     colors: ['Grey', 'Beige'],
-    collections: ['Furniture'],
+    collectionId: 'collectionId15', // Reference to the collection ID
     material: 'High-density foam and fabric',
     careInstructions: 'Vacuum regularly and spot clean with mild detergent.',
     gender: 'Unisex',
@@ -828,7 +828,7 @@ const products = [
     sku: 'DWC3001',
     sizes: [],
     colors: ['Black', 'White', 'Gold'],
-    collections: ['Decor'],
+    collectionId: 'collectionId16', // Reference to the collection ID
     material: 'Wood and Metal',
     careInstructions: 'Dust with a soft cloth.',
     gender: 'Unisex',
@@ -880,7 +880,7 @@ const products = [
     sku: 'CVC1001',
     sizes: [],
     colors: ['Black', 'Red'],
-    collections: ['Car Care'],
+    collectionId: 'collectionId17', // Reference to the collection ID
     material: 'Plastic and Metal',
     careInstructions: 'Empty the dustbin after each use.',
     gender: 'Unisex',
@@ -988,7 +988,7 @@ const products = [
     sku: 'BKP1001',
     sizes: [],
     colors: [],
-    collections: ['Non-Fiction'],
+    collectionId: 'collectionId18', // Reference to the collection ID
     material: 'Paperback',
     careInstructions: 'Keep in a dry place and avoid direct sunlight.',
     gender: 'Unisex',
@@ -1041,7 +1041,7 @@ const products = [
     sku: 'CLN2001',
     sizes: [],
     colors: ['Black', 'Brown'],
-    collections: ['Stationery'],
+    collectionId: 'collectionId19', // Reference to the collection ID
     material: 'Leather Cover, Acid-Free Paper',
     careInstructions: 'Store in a dry place.',
     gender: 'Unisex',
@@ -1095,7 +1095,7 @@ const products = [
     sku: 'DSS3001',
     sizes: [],
     colors: ['Multicolor'],
-    collections: ['School Supplies'],
+    collectionId: 'collectionId20', // Reference to the collection ID
     material: 'Plastic, Metal, Paper',
     careInstructions: 'Keep away from water.',
     gender: 'Unisex',
@@ -1150,7 +1150,7 @@ const products = [
     sku: 'GPN1001',
     sizes: [],
     colors: ['Gold'],
-    collections: ['Rings'],
+    collectionId: 'collectionId21', // Reference to the collection ID
     material: 'Gold-Plated Stainless Steel',
     careInstructions: 'Keep away from moisture and store in a jewelry box.',
     gender: 'Female',
@@ -1203,7 +1203,7 @@ const products = [
     sku: 'LCW2001',
     sizes: [],
     colors: ['Silver', 'Black'],
-    collections: ['Watches'],
+    collectionId: 'collectionId22', // Reference to the collection ID
     material: 'Stainless Steel',
     careInstructions: 'Avoid water and clean with a soft cloth.',
     gender: 'Male',
@@ -1230,6 +1230,273 @@ const products = [
         name: 'Michael Davis',
         rating: 5,
         comment: 'Looks and feels amazing on the wrist!',
+      },
+    ],
+  },
+
+  {
+    name: 'Luxury Car Air Freshener',
+    description: 'Long-lasting luxury car air freshener with a premium scent.',
+    price: 9.99,
+    discountPrice: 7.99,
+    brand: 'FreshRide',
+    stock: 500,
+    category: 'Automotive',
+    images: [
+      {
+        url: 'https://picsum.photos/id/332/800',
+        altText: 'Luxury Car Air Freshener',
+      },
+      {
+        url: 'https://picsum.photos/id/333/800',
+        altText: 'Car Air Freshener in use',
+      },
+    ],
+    status: 'Active',
+    sku: 'CAF1001',
+    sizes: [],
+    colors: ['Black', 'White'],
+    collectionId: 'collectionId23', // Reference to the collection ID
+    material: 'Scented Gel',
+    careInstructions: 'Replace every 30 days for best results.',
+    gender: 'Unisex',
+    attributes: {
+      Scent: ['Vanilla', 'Lavender', 'Ocean Breeze'],
+    },
+    isFeatured: true,
+    isPublished: true,
+    rating: 4.4,
+    numReviews: 58,
+    tags: ['car air freshener', 'scent', 'automotive'],
+    user: 'ObjectId_of_User',
+    metaTitle: 'Luxury Car Air Freshener - FreshRide',
+    metaDescription:
+      'Long-lasting luxury car air freshener with a premium scent.',
+    metaKeywords: 'car air freshener, scent, automotive',
+    dimensions: {
+      length: '2 inches',
+      width: '2 inches',
+    },
+    weight: 100,
+    reviews: [
+      {
+        name: 'Laura Smith',
+        rating: 5,
+        comment: 'Smells amazing and lasts a long time!',
+      },
+    ],
+  },
+  {
+    name: 'Universal Car Phone Mount',
+    description:
+      'Sturdy and adjustable car phone mount for hands-free navigation.',
+    price: 19.99,
+    discountPrice: 15.99,
+    brand: 'DriveSafe',
+    stock: 300,
+    category: 'Automotive',
+    images: [
+      {
+        url: 'https://picsum.photos/id/330/800',
+        altText: 'Universal Car Phone Mount',
+      },
+      {
+        url: 'https://picsum.photos/id/331/800',
+        altText: 'Car Phone Mount in use',
+      },
+    ],
+    status: 'Active',
+    sku: 'CPM1001',
+    sizes: [],
+    colors: ['Black', 'Silver'],
+    collectionId: 'collectionId24', // Reference to the collection ID
+    material: 'Plastic and Metal',
+    careInstructions: 'Wipe with a damp cloth.',
+    gender: 'Unisex',
+    attributes: {
+      Fit: ['Universal'],
+      Adjustable: ['Yes'],
+    },
+    isFeatured: true,
+    isPublished: true,
+    rating: 4.5,
+    numReviews: 64,
+    tags: ['car phone mount', 'hands-free', 'automotive'],
+    user: 'ObjectId_of_User',
+    metaTitle: 'Universal Car Phone Mount - DriveSafe',
+    metaDescription:
+      'Sturdy and adjustable car phone mount for hands-free navigation.',
+    metaKeywords: 'car phone mount, hands-free, automotive',
+    dimensions: {
+      length: '6 inches',
+      width: '3 inches',
+    },
+    weight: 300,
+    reviews: [
+      {
+        name: 'Mike Thompson',
+        rating: 4,
+        comment: 'Holds my phone securely, great value for money.',
+      },
+    ],
+  },
+  {
+    name: 'Premium Car Wax and Polish Kit',
+    description: 'Complete car wax and polish kit for a showroom shine.',
+    price: 39.99,
+    discountPrice: 34.99,
+    brand: 'ShinePro',
+    stock: 200,
+    category: 'Automotive',
+    images: [
+      {
+        url: 'https://picsum.photos/id/328/800',
+        altText: 'Premium Car Wax and Polish Kit',
+      },
+      {
+        url: 'https://picsum.photos/id/329/800',
+        altText: 'Car Wax and Polish Kit in use',
+      },
+    ],
+    status: 'Active',
+    sku: 'CWPK1001',
+    sizes: [],
+    colors: [],
+    collectionId: 'collectionId25', // Reference to the collection ID
+    material: 'Synthetic Wax',
+    careInstructions: 'Apply with a microfiber cloth, buff to a shine.',
+    gender: 'Unisex',
+    attributes: {
+      WaterResistant: ['Yes'],
+      UVProtection: ['Yes'],
+    },
+    isFeatured: true,
+    isPublished: true,
+    rating: 4.9,
+    numReviews: 105,
+    tags: ['car wax', 'polish kit', 'car care'],
+    user: 'ObjectId_of_User',
+    metaTitle: 'Premium Car Wax and Polish Kit - ShinePro',
+    metaDescription: 'Complete car wax and polish kit for a showroom shine.',
+    metaKeywords: 'car wax, polish kit, car care',
+    dimensions: {
+      length: '10 inches',
+      width: '6 inches',
+    },
+    weight: 1500,
+    reviews: [
+      {
+        name: 'Emily Carter',
+        rating: 5,
+        comment: 'My car has never looked better!',
+      },
+    ],
+  },
+  {
+    name: 'Ultra-Bright LED Headlight Bulbs',
+    description:
+      'High-performance LED headlight bulbs for improved visibility and style.',
+    price: 59.99,
+    discountPrice: 49.99,
+    brand: 'LuxBeam',
+    stock: 150,
+    category: 'Automotive',
+    images: [
+      {
+        url: 'https://picsum.photos/id/326/800',
+        altText: 'Ultra-Bright LED Headlight Bulbs',
+      },
+      {
+        url: 'https://picsum.photos/id/327/800',
+        altText: 'LED Headlight Bulbs installed in a car',
+      },
+    ],
+    status: 'Active',
+    sku: 'LED2001',
+    sizes: [],
+    colors: ['White', 'Blue'],
+    collectionId: 'collectionId26', // Reference to the collection ID
+    material: 'Aluminum',
+    careInstructions: 'Handle with care, avoid touching the bulb surface.',
+    gender: 'Unisex',
+    attributes: {
+      Fit: ['Universal'],
+      Brightness: ['6000K'],
+    },
+    isFeatured: true,
+    isPublished: true,
+    rating: 4.6,
+    numReviews: 78,
+    tags: ['LED headlights', 'car bulbs', 'automotive'],
+    user: 'ObjectId_of_User',
+    metaTitle: 'Ultra-Bright LED Headlight Bulbs - LuxBeam',
+    metaDescription:
+      'High-performance LED headlight bulbs for improved visibility and style.',
+    metaKeywords: 'LED headlights, car bulbs, automotive',
+    dimensions: {
+      length: '4 inches',
+      width: '2 inches',
+    },
+    weight: 500,
+    reviews: [
+      {
+        name: 'John Doe',
+        rating: 4,
+        comment: 'Great brightness, easy to install.',
+      },
+    ],
+  },
+  {
+    name: 'All-Weather Car Floor Mats',
+    description:
+      'Durable and easy-to-clean all-weather car floor mats for maximum protection.',
+    price: 89.99,
+    discountPrice: 79.99,
+    brand: 'AutoShield',
+    stock: 120,
+    category: 'Automotive',
+    images: [
+      {
+        url: 'https://picsum.photos/id/324/800',
+        altText: 'All-Weather Car Floor Mats in a car',
+      },
+      {
+        url: 'https://picsum.photos/id/325/800',
+        altText: 'Close-up of All-Weather Car Floor Mats',
+      },
+    ],
+    status: 'Active',
+    sku: 'AWM1001',
+    sizes: [],
+    colors: ['Black', 'Gray'],
+    collectionId: 'collectionId27', // Reference to the collection ID
+    material: 'Rubber',
+    careInstructions: 'Rinse with water and mild soap.',
+    gender: 'Unisex',
+    attributes: {
+      Fit: ['Universal'],
+      WaterResistant: ['Yes'],
+    },
+    isFeatured: true,
+    isPublished: true,
+    rating: 4.8,
+    numReviews: 92,
+    tags: ['car floor mats', 'all-weather', 'automotive'],
+    user: 'ObjectId_of_User',
+    metaTitle: 'All-Weather Car Floor Mats - AutoShield',
+    metaDescription:
+      'Durable and easy-to-clean all-weather car floor mats for maximum protection.',
+    metaKeywords: 'car floor mats, all-weather, automotive',
+    dimensions: {
+      length: '36 inches',
+      width: '18 inches',
+    },
+    weight: 2500,
+    reviews: [
+      {
+        name: 'Sarah Johnson',
+        rating: 5,
+        comment: 'Perfect fit and great quality!',
       },
     ],
   },

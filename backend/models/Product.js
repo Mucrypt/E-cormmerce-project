@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const productsProductsSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -30,8 +30,8 @@ const productsProductsSchema = new mongoose.Schema(
       required: true,
     },
     category: {
-      type: mongoose.Schema.Types.ObjectId, // Reference to Category model
-      ref: 'Category', // Name of the referenced model
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
       required: true,
     },
     images: [
@@ -56,15 +56,15 @@ const productsProductsSchema = new mongoose.Schema(
       unique: true,
     },
     sizes: {
-      type: [String], // Array of available sizes
+      type: [String],
       default: [],
     },
     colors: {
-      type: [String], // Array of available colors
+      type: [String],
       default: [],
     },
     collections: {
-      type: [String], // Array of collection names
+      type: [String],
       default: [],
     },
     material: {
@@ -80,8 +80,8 @@ const productsProductsSchema = new mongoose.Schema(
       enum: ['Men', 'Women', 'Kids', 'Unisex', 'Male', 'Female'],
     },
     attributes: {
-      type: Map, // Flexible key-value pairs for attributes
-      of: [String], // Values can be an array of strings
+      type: Map,
+      of: [String],
       default: {},
     },
     isFeatured: {
@@ -131,7 +131,7 @@ const productsProductsSchema = new mongoose.Schema(
       {
         customer: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'customer',
+          ref: 'Customer',
         },
         name: {
           type: String,
@@ -167,7 +167,7 @@ const productsProductsSchema = new mongoose.Schema(
       {
         customer: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'customer',
+          ref: 'Customer',
           required: true,
         },
         comment: {
@@ -197,12 +197,9 @@ const productsProductsSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-
-  { timestamps: true } // Adds createdAt and updatedAt fields
+  { timestamps: true }
 )
 
-// Check if the model already exists before defining it
-const Products =
-  mongoose.models.Products || mongoose.model('Products', productsProductsSchema)
-
-module.exports = Products
+const Product =
+  mongoose.models.Product || mongoose.model('Product', productSchema)
+module.exports = Product

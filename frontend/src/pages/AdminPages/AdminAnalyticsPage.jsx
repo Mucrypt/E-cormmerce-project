@@ -79,7 +79,7 @@ const AdminAnalyticsPage = () => {
   }
 
   return (
-    <div className='p-6 overflow-y-auto'>
+    <div className='overflow-y-auto max-h-[calc(100vh-200px)] p-6'>
       <h1 className='text-2xl font-semibold mb-6'>Analytics Dashboard</h1>
 
       {/* Quick Stats Cards */}

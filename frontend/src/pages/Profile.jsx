@@ -12,7 +12,7 @@ const Profile = () => {
             <div className='text-center mb-6'>
               <div className='w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden'>
                 <img
-                  src='https://via.placeholder.com/150'
+                  src='https://picsum.photos/id/2/800'
                   alt='Profile'
                   className='w-full h-full object-cover'
                 />

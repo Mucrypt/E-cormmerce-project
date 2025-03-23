@@ -130,7 +130,7 @@ const AdminContentPage = () => {
   }
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
+    <div className='overflow-y-auto max-h-[calc(100vh-200px)] p-6'>
       <h1 className='text-2xl font-semibold mb-6 text-gray-800'>
         Manage Content
       </h1>

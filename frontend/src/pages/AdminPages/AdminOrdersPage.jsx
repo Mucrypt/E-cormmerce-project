@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FaEye, FaCheck, FaTimes } from 'react-icons/fa'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  fetchAllOrders,
+  markOrderAsDelivered,
+  cancelOrder,
+} from '../../redux/slices/adminOrderSlice'
 
 const AdminOrdersPage = () => {
-  // Sample orders data
-  const [orders, setOrders] = useState([
-    { id: 1, customer: 'John Doe', total: '$199.99', status: 'Delivered' },
-    { id: 2, customer: 'Jane Smith', total: '$299.99', status: 'Pending' },
-    { id: 3, customer: 'Alice Johnson', total: '$99.99', status: 'Pending' },
-    { id: 4, customer: 'Bob Brown', total: '$499.99', status: 'Delivered' },
-  ])
+  const dispatch = useDispatch()
+  const { orders, loading, error } = useSelector((state) => state.adminOrders)
 
   // State for the order details modal
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -22,6 +23,22 @@ const AdminOrdersPage = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const ordersPerPage = 5
 
+  // Fetch orders on component mount
+  useEffect(() => {
+    dispatch(fetchAllOrders())
+  }, [dispatch])
+
+  // Calculate total sales from delivered orders
+  const totalSales = orders
+    .filter((order) => order.status === 'Delivered') // Only include delivered orders
+    .reduce((total, order) => total + order.totalPrice, 0) // Sum up totalPrice
+
+  // Format total sales as currency
+  const formattedTotalSales = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(totalSales)
+
   // Open the order details modal
   const openOrderDetails = (order) => {
     setSelectedOrder(order)
@@ -34,22 +51,18 @@ const AdminOrdersPage = () => {
   }
 
   // Handle marking an order as delivered
-  const markAsDelivered = (id) => {
-    setOrders(
-      orders.map((order) =>
-        order.id === id ? { ...order, status: 'Delivered' } : order
-      )
-    )
+  const handleMarkAsDelivered = (id) => {
+    dispatch(markOrderAsDelivered(id))
   }
 
   // Handle canceling an order
-  const cancelOrder = (id) => {
-    setOrders(orders.filter((order) => order.id !== id))
+  const handleCancelOrder = (id) => {
+    dispatch(cancelOrder(id))
   }
 
   // Filtered orders based on search and status
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch = order.customer
+    const matchesSearch = order.user.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase())
     const matchesStatus = filterStatus ? order.status === filterStatus : true
@@ -67,10 +80,21 @@ const AdminOrdersPage = () => {
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber)
 
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message || error}</div>
+
   return (
     <div className='p-6'>
       <h1 className='text-2xl font-semibold mb-6'>Manage Orders</h1>
       <div className='bg-white p-6 rounded-lg shadow-md'>
+        {/* Total Sales Display */}
+        <div className='mb-6 p-4 bg-blue-50 rounded-lg'>
+          <h2 className='text-lg font-semibold text-blue-800'>
+            Total Sales:{' '}
+            <span className='font-bold'>{formattedTotalSales}</span>
+          </h2>
+        </div>
+
         {/* Search and Filters */}
         <div className='flex justify-between mb-4'>
           <div className='flex items-center space-x-4'>
@@ -110,12 +134,12 @@ const AdminOrdersPage = () => {
           <tbody>
             {currentOrders.map((order) => (
               <tr
-                key={order.id}
+                key={order._id}
                 className='border-b hover:bg-gray-50 transition-colors'
               >
-                <td className='p-2'>#{order.id}</td>
-                <td className='p-2'>{order.customer}</td>
-                <td className='p-2'>{order.total}</td>
+                <td className='p-2'>#{order._id}</td>
+                <td className='p-2'>{order.user.name}</td>
+                <td className='p-2'>${order.totalPrice}</td>
                 <td className='p-2'>
                   <span
                     className={`px-2 py-1 rounded-full text-sm ${
@@ -137,13 +161,13 @@ const AdminOrdersPage = () => {
                   {order.status === 'Pending' && (
                     <>
                       <button
-                        onClick={() => markAsDelivered(order.id)}
+                        onClick={() => handleMarkAsDelivered(order._id)}
                         className='text-green-500 hover:text-green-700'
                       >
                         <FaCheck />
                       </button>
                       <button
-                        onClick={() => cancelOrder(order.id)}
+                        onClick={() => handleCancelOrder(order._id)}
                         className='text-red-500 hover:text-red-700'
                       >
                         <FaTimes />
@@ -183,13 +207,13 @@ const AdminOrdersPage = () => {
             <h2 className='text-xl font-semibold mb-4'>Order Details</h2>
             <div className='space-y-4'>
               <div>
-                <strong>Order ID:</strong> #{selectedOrder.id}
+                <strong>Order ID:</strong> #{selectedOrder._id}
               </div>
               <div>
-                <strong>Customer:</strong> {selectedOrder.customer}
+                <strong>Customer:</strong> {selectedOrder.user.name}
               </div>
               <div>
-                <strong>Total:</strong> {selectedOrder.total}
+                <strong>Total:</strong> ${selectedOrder.totalPrice}
               </div>
               <div>
                 <strong>Status:</strong>{' '}

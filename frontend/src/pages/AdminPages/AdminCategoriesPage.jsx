@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   FaEdit,
   FaTrash,
@@ -6,30 +6,22 @@ import {
   FaChevronDown,
   FaChevronUp,
 } from 'react-icons/fa'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from '../../redux/slices/categorySlice'
 import uploadImage from '../../utils/uploadImage'
 
 const AdminCategoriesPage = () => {
-  // Mock data for categories
-  const [categories, setCategories] = useState([
-    {
-      _id: '64f8e8b7e4b0d1a2b3c4d5e6', // Use _id instead of id for MongoDB compatibility
-      name: 'Electronics',
-      description: 'Devices and gadgets for everyday use.',
-      subcategories: ['Mobile Phones', 'Laptops'],
-      image: 'https://picsum.photos/id/204/800',
-      status: 'Active',
-      productCount: 120,
-    },
-    {
-      _id: '64f8e8b7e4b0d1a2b3c4d5e7', // Use _id instead of id for MongoDB compatibility
-      name: 'Clothing',
-      description: 'Fashionable apparel for men and women.',
-      subcategories: ['Men', 'Women'],
-      image: 'https://picsum.photos/id/204/800',
-      status: 'Active',
-      productCount: 200,
-    },
-  ])
+  const dispatch = useDispatch()
+  const {
+    categories = [],
+    loading,
+    error,
+  } = useSelector((state) => state.categories)
 
   // State to track which category's subcategories are visible
   const [showSubcategories, setShowSubcategories] = useState({})
@@ -37,7 +29,7 @@ const AdminCategoriesPage = () => {
   // State for the add/edit category modal
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentCategory, setCurrentCategory] = useState({
-    _id: '', // Use _id instead of id for MongoDB compatibility
+    _id: '',
     name: '',
     description: '',
     subcategories: '',
@@ -49,10 +41,20 @@ const AdminCategoriesPage = () => {
   // State for image upload
   const [isUploading, setIsUploading] = useState(false)
 
+  // Fetch categories on component mount
+  useEffect(() => {
+    console.log('Fetching categories...')
+    dispatch(fetchCategories())
+  }, [dispatch])
+
+  console.log('Categories:', categories)
+  console.log('Loading:', loading)
+  console.log('Error:', error)
+
   // Open the add category modal
   const openAddModal = () => {
     setCurrentCategory({
-      _id: '', // Use _id instead of id for MongoDB compatibility
+      _id: '',
       name: '',
       description: '',
       subcategories: '',
@@ -99,18 +101,17 @@ const AdminCategoriesPage = () => {
     setIsUploading(true)
     const data = await uploadImage(file)
     if (data) {
-      setCurrentCategory({ ...currentCategory, image: data.secure_url })
+      setCurrentCategory({ ...currentCategory, image: data.imageUrl })
     }
     setIsUploading(false)
   }
 
   // Handle adding/editing a category
-  const handleSaveCategory = () => {
+  const handleSaveCategory = async () => {
     if (!currentCategory.name || !currentCategory.description) return
 
-    const newCategory = {
+    const categoryData = {
       ...currentCategory,
-      _id: currentCategory._id || String(Math.random()), // Use _id instead of id for MongoDB compatibility
       subcategories: currentCategory.subcategories
         .split(',')
         .map((s) => s.trim()), // Convert comma-separated string to array
@@ -119,119 +120,135 @@ const AdminCategoriesPage = () => {
 
     if (currentCategory._id) {
       // Edit existing category
-      setCategories(
-        categories.map((cat) =>
-          cat._id === currentCategory._id ? newCategory : cat
-        )
+      await dispatch(
+        updateCategory({ categoryId: currentCategory._id, categoryData })
       )
     } else {
       // Add new category
-      setCategories([...categories, newCategory])
+      await dispatch(createCategory(categoryData))
     }
 
     closeModal()
   }
 
   // Handle deleting a category
-  const handleDeleteCategory = (id) => {
+  const handleDeleteCategory = async (id) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      setCategories(categories.filter((cat) => cat._id !== id))
+      await dispatch(deleteCategory(id))
     }
   }
 
+  if (loading) return <p>Loading...</p>
+  if (error) return <p>Error: {error}</p>
+
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
-      <h1 className='text-2xl font-semibold mb-6 text-gray-800'>
+    <div className='p-6 bg-green50 min-h-screen'>
+      <h1 className='text-2xl font-bold mb-6 text-gray-800'>
         Manage Categories
       </h1>
-      <div className='bg-white p-6 rounded-lg shadow-md'>
+      <div className='bg-green-50 p-6 rounded-lg shadow-md'>
         <div className='flex justify-end mb-4'>
           <button
             onClick={openAddModal}
-            className='bg-defaul-button-colors text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-red-600 transition-colors'
+            className='bg-defaul-button-colors text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-red-500 transition-colors'
           >
             <FaPlus />
             <span>Add Category</span>
           </button>
         </div>
-        <table className='w-full'>
-          <thead>
-            <tr className='bg-gray-100 text-gray-700'>
-              <th className='text-left p-3'>ID</th>
-              <th className='text-left p-3'>Name</th>
-              <th className='text-left p-3'>Description</th>
-              <th className='text-left p-3'>Subcategories</th>
-              <th className='text-left p-3'>Image</th>
-              <th className='text-left p-3'>Status</th>
-              <th className='text-left p-3'>Product Count</th>
-              <th className='text-left p-3'>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((category) => (
-              <React.Fragment key={category._id}>
-                <tr className='border-b hover:bg-gray-50 transition-colors'>
-                  <td className='p-3 text-gray-700'>{category._id}</td>
-                  <td className='p-3 text-gray-700'>{category.name}</td>
-                  <td className='p-3 text-gray-700'>{category.description}</td>
-                  <td className='p-3 text-gray-700'>
-                    <button
-                      onClick={() => toggleSubcategories(category._id)}
-                      className='flex items-center space-x-2 text-blue-500 hover:text-blue-700'
-                    >
-                      <span>Subcategories</span>
-                      {showSubcategories[category._id] ? (
-                        <FaChevronUp />
-                      ) : (
-                        <FaChevronDown />
-                      )}
-                    </button>
-                  </td>
-                  <td className='p-3'>
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className='w-12 h-12 object-cover rounded'
-                    />
-                  </td>
-                  <td className='p-3 text-gray-700'>{category.status}</td>
-                  <td className='p-3 text-gray-700'>{category.productCount}</td>
-                  <td className='p-2 flex space-x-2'>
-                    <button
-                      onClick={() => openEditModal(category)}
-                      className='text-yellow-500 hover:text-yellow-700 bg-blue-100 px-2 py-1 rounded-md flex items-center space-x-1'
-                    >
-                      <FaEdit />
-                      <span>Edit</span>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCategory(category._id)}
-                      className='text-red-500 hover:text-red-700 bg-red-100 px-2 py-1 rounded-md flex items-center space-x-1'
-                    >
-                      <FaTrash />
-                      <span>Delete</span>
-                    </button>
-                  </td>
-                </tr>
-                {showSubcategories[category._id] && (
-                  <tr>
-                    <td colSpan='8' className='p-3 bg-gray-50'>
-                      <div className='pl-6'>
-                        <ul className='list-disc list-inside'>
-                          {category.subcategories.map((subcategory, index) => (
-                            <li key={index} className='text-gray-700'>
-                              {subcategory}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
+        {/* Scrollable Table Container */}
+        <div className='overflow-y-auto max-h-[calc(100vh-200px)]'>
+          <table className='w-full'>
+            <thead>
+              <tr className='bg-gray-100 text-gray-700'>
+                <th className='text-left p-3'>Name</th>
+                <th className='text-left p-3'>Description</th>
+                <th className='text-left p-3'>Subcategories</th>
+                <th className='text-left p-3'>Image</th>
+                <th className='text-left p-3'>Status</th>
+                <th className='text-left p-3'>Product Count</th>
+                <th className='text-left p-3'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(categories) &&
+                categories.map((category) => (
+                  <React.Fragment key={category._id}>
+                    <tr className='border-b hover:bg-gray-50 transition-colors'>
+                      <td className='p-3 text-gray-700'>
+                        <a
+                          href={`/shop/category/${category._id}`} // Link to the category page
+                          className='font-bold underline hover:text-blue-600'
+                        >
+                          {category.name}
+                        </a>
+                      </td>
+                      <td className='p-3 text-gray-700'>
+                        {category.description}
+                      </td>
+                      <td className='p-3 text-gray-700'>
+                        <button
+                          onClick={() => toggleSubcategories(category._id)}
+                          className='flex items-center space-x-2 text-blue-500 hover:text-blue-700'
+                        >
+                          <span>Subcategories</span>
+                          {showSubcategories[category._id] ? (
+                            <FaChevronUp />
+                          ) : (
+                            <FaChevronDown />
+                          )}
+                        </button>
+                      </td>
+                      <td className='p-3'>
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          className='w-12 h-12 object-cover rounded'
+                        />
+                      </td>
+                      <td className='p-3 text-gray-700'>{category.status}</td>
+                      <td className='p-3 text-gray-700'>
+                        {category.productCount}
+                      </td>
+                      <td className='p-2 flex space-x-2'>
+                        <button
+                          onClick={() => openEditModal(category)}
+                          className='text-yellow-500 hover:text-yellow-700 bg-yellow-100 px-2 py-1 rounded-md flex items-center space-x-1'
+                        >
+                          <FaEdit />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(category._id)}
+                          className='text-red-500 hover:text-red-700 bg-red-100 px-2 py-1 rounded-md flex items-center space-x-1'
+                        >
+                          <FaTrash />
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                    {showSubcategories[category._id] && (
+                      <tr>
+                        <td colSpan='7' className='p-3 bg-gray-50'>
+                          <div className='pl-6'>
+                            <ul className='list-disc list-inside'>
+                              {category.subcategories.map(
+                                (subcategory, index) => (
+                                  <li key={index} className='text-gray-700'>
+                                    {subcategory}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Add/Edit Category Modal */}
@@ -339,7 +356,7 @@ const AdminCategoriesPage = () => {
                 </button>
                 <button
                   onClick={handleSaveCategory}
-                  className='bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors'
+                  className='bg-defaul-button-colors text-white px-4 py-2 rounded-md hover:bg-red-500 transition-colors'
                 >
                   {currentCategory._id ? 'Save Changes' : 'Add Category'}
                 </button>

@@ -1,7 +1,7 @@
 const express = require('express')
 const Checkout = require('../models/checkout')
 const Cart = require('../models/Cart') // Updated casing
-const Product = require('../models/Product') // Updated casing
+const Product = require('../models/product') // Updated casing
 const Order = require('../models/order')
 const {
   authMiddleware,

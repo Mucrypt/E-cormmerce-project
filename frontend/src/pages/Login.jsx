@@ -2,12 +2,16 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa' // Social icons
 import { motion } from 'framer-motion' // For animations
+import { loginUser } from '../redux/slices/authSlice'
+import { useDispatch } from 'react-redux'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false) // Toggle password visibility
   const [error, setError] = useState('') // Error handling
+
+  const dispatch = useDispatch()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -16,8 +20,7 @@ const Login = () => {
       setError('Please fill in all fields.')
     } else {
       setError('')
-      console.log('Logging in with:', email, password)
-      // Redirect or perform login action
+    dispatch(loginUser({ email, password }))
     }
   }
 

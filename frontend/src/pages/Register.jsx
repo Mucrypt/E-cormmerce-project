@@ -1,26 +1,48 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa' // Social icons
 import { motion } from 'framer-motion' // For animations
+import { registerUser } from '../redux/slices/authSlice'
+import { useDispatch, useSelector } from 'react-redux'
 
 const Register = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false) // Toggle password visibility
   const [name, setName] = useState('')
-  const [error, setError] = useState('') // Error handling
+  const [localError, setLocalError] = useState('') // Local error handling
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
+  // Get the auth state from Redux
+  const { loading, error, user } = useSelector((state) => state.auth)
+
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Add your registration logic here
     if (!name || !email || !password) {
-      setError('Please fill in all fields.')
+      setLocalError('Please fill in all fields.')
     } else {
-      setError('')
-      console.log('Registering with:', name, email, password)
-      // Redirect or perform registration action
+      setLocalError('')
+      const userData = { name, email, password } // Correct payload for backend
+      console.log('Dispatching user data:', userData) // Log the data
+      dispatch(registerUser(userData))
     }
   }
+
+  // Redirect to login page after successful registration
+  useEffect(() => {
+    if (user) {
+      navigate('/login') // Redirect to login page
+    }
+  }, [user, navigate])
+
+  // Display backend errors in the UI
+  useEffect(() => {
+    if (error) {
+      setLocalError(error)
+    }
+  }, [error])
 
   return (
     <div className='min-h-screen flex flex-col md:flex-row bg-gradient-to-r from-green-50 to-green-100 mt-6'>
@@ -104,17 +126,20 @@ const Register = () => {
           </div>
 
           {/** Error Message */}
-          {error && (
-            <div className='mb-6 text-red-500 text-sm text-center'>{error}</div>
+          {localError && (
+            <div className='mb-6 text-red-500 text-sm text-center'>
+              {localError}
+            </div>
           )}
 
           {/** Sign Up Button */}
           <div className='mb-6'>
             <button
               type='submit'
-              className='w-full p-2 md:p-3 bg-defaul-button hover:bg-hero-button-hover transition-all text-white rounded-lg font-semibold shadow-lg hover:shadow-xl'
+              disabled={loading} // Disable button during loading
+              className='w-full p-2 md:p-3 bg-defaul-button hover:bg-hero-button-hover transition-all text-white rounded-lg font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed'
             >
-              Sign Up
+              {loading ? 'Signing Up...' : 'Sign Up'}
             </button>
           </div>
 

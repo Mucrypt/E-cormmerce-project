@@ -12,6 +12,111 @@ const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id)
 }
 
+// Rate limiting
+const rateLimit = require('express-rate-limit')
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+})
+router.use(limiter)
+
+// Caching
+const apicache = require('apicache')
+const cache = apicache.middleware
+
+// Cached route for getting all products
+router.get('/', cache('5 minutes'), async (req, res) => {
+  try {
+    const {
+      category,
+      status,
+      isFeatured,
+      isPublished,
+      sort,
+      page = 1,
+      limit = 10,
+    } = req.query
+
+    // Build filter
+    const filter = {}
+    if (category) filter.category = category
+    if (status) filter.status = status
+    if (isFeatured) filter.isFeatured = isFeatured === 'true'
+    if (isPublished) filter.isPublished = isPublished === 'true'
+
+    // Build sort options
+    const sortOptions = {}
+    if (sort) {
+      const [field, order] = sort.split(':')
+      sortOptions[field] = order === 'desc' ? -1 : 1
+    }
+
+    // Pagination
+    const pageInt = parseInt(page, 10)
+    const limitInt = parseInt(limit, 10)
+    if (isNaN(pageInt))
+      return res.status(400).json({ error: 'Invalid page value' })
+    if (isNaN(limitInt))
+      return res.status(400).json({ error: 'Invalid limit value' })
+
+    const products = await Product.find(filter)
+      .sort(sortOptions)
+      .skip((pageInt - 1) * limitInt)
+      .limit(limitInt)
+      .populate('category', 'name description')
+      .populate('customer', 'name email')
+
+    const totalProducts = await Product.countDocuments(filter)
+
+    res.status(200).json({
+      products,
+      totalProducts,
+      totalPages: Math.ceil(totalProducts / limitInt),
+      currentPage: pageInt,
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+//@route GET /api/products/:id/similar
+//@desc Get similar products (based on category or tags)
+//@access Public
+router.get('/:id/similar', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { limit = 5 } = req.query // Default to 5 similar products
+
+    // Validate product ID
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid product ID' })
+    }
+
+    // Find the product to get its category and tags
+    const product = await Product.findById(id)
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' })
+    }
+
+    // Fetch similar products based on category or tags
+    const similarProducts = await Product.find({
+      $or: [
+        { category: product.category }, // Same category
+        { tags: { $in: product.tags } }, // Shared tags
+      ],
+      _id: { $ne: id }, // Exclude the current product
+      isPublished: true, // Only include published products
+    })
+      .limit(parseInt(limit, 10)) // Limit the number of results
+      .select('name price discountPrice rating numReviews images') // Select specific fields
+
+    res.status(200).json(similarProducts)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 // Create a product (Admin only)
 //@route POST /api/products
 //@desc Create a product
@@ -36,6 +141,25 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     res.status(201).json(product)
   } catch (error) {
     res.status(400).json({ error: error.message })
+  }
+})
+
+//@route GET /api/products/search
+//@desc Search products by name, description, or tags
+//@access Public
+router.get('/search', async (req, res) => {
+  try {
+    const { query } = req.query
+    const products = await Product.find({
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+        { tags: { $in: [query] } },
+      ],
+    })
+    res.status(200).json(products)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
   }
 })
 
@@ -96,6 +220,46 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 })
+
+//@route GET /api/products/stats
+//@desc Get product statistics
+//@access Private (Admin only)
+router.get('/stats', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const stats = await Product.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalProducts: { $sum: 1 },
+          totalStock: { $sum: '$stock' },
+          averageRating: { $avg: '$rating' },
+        },
+      },
+    ])
+    res.status(200).json(stats[0])
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+//@route PUT /api/products/:id/reviews/:reviewId/helpful
+//@desc Mark a review as helpful
+//@access Private
+router.put(
+  '/:id/reviews/:reviewId/helpful',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const product = await Product.findById(req.params.id)
+      const review = product.reviews.id(req.params.reviewId)
+      review.helpful += 1
+      await product.save()
+      res.status(200).json(review)
+    } catch (error) {
+      res.status(500).json({ error: error.message })
+    }
+  }
+)
 //@route GET /api/products/top-rated
 //@desc Get top-rated products
 //@access Public
@@ -240,8 +404,6 @@ router.get('/:id/reviews/stats', async (req, res) => {
   }
 })
 
-
-
 //@route GET /api/products/collections/:collection
 //@desc Get products by collection
 //@access Public
@@ -369,14 +531,31 @@ router.get('/best-sellers', async (req, res) => {
       },
       { $limit: parseInt(limit, 10) }, // Limit the number of results
       {
+        $lookup: {
+          from: 'categories', // Join with the Category collection
+          localField: 'category', // Field in the Product collection
+          foreignField: '_id', // Field in the Category collection
+          as: 'categoryDetails', // Output array field
+        },
+      },
+      {
+        $unwind: '$categoryDetails', // Unwind the joined category details
+      },
+      {
         $project: {
+          _id: 1,
           name: 1,
+          description: 1,
           price: 1,
           discountPrice: 1,
+          brand: 1,
+          category: '$categoryDetails.name', // Include the category name
+          images: 1,
+          sizes: 1,
+          colors: 1,
+          materials: 1,
           rating: 1,
           numReviews: 1,
-          images: 1,
-          createdAt: 1,
         },
       },
     ])
@@ -386,7 +565,6 @@ router.get('/best-sellers', async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 })
-
 //@route PUT /api/products/:id/collections/add
 //@desc Add a product to a collection
 //@access Private (Admin only)
@@ -466,26 +644,34 @@ router.put(
     }
   }
 )
-// Get a single product by ID (Public)
 //@route GET /api/products/:id
 //@desc Get a single product by ID
 //@access Public
 router.get('/:id', async (req, res) => {
   try {
+    console.log('Fetching product with ID:', req.params.id) // Debug log
+
+    // Validate product ID
     if (!isValidObjectId(req.params.id)) {
+      console.log('Invalid product ID:', req.params.id) // Debug log
       return res.status(400).json({ error: 'Invalid product ID' })
     }
 
+    // Fetch product from the database
     const product = await Product.findById(req.params.id)
       .populate('category', 'name description')
-      .populate('user', 'name email')
+      .populate('customer', 'name email')
+      .exec() // Use .exec() to return a proper promise
 
     if (!product) {
+      console.log('Product not found:', req.params.id) // Debug log
       return res.status(404).json({ error: 'Product not found' })
     }
 
+    console.log('Product found:', product) // Debug log
     res.status(200).json(product)
   } catch (error) {
+    console.error('Error fetching product:', error) // Debug log
     res.status(500).json({ error: error.message })
   }
 })

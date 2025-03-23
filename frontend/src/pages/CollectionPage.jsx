@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaFilter } from 'react-icons/fa'
-import { useNavigate } from 'react-router-dom' // Import useNavigate
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import FilterSidebar from '../components/Products/FilterSidebar'
 import SortOption from '../components/Products/SortOption'
+import axios from 'axios'
 
 const CollectionPage = () => {
   const [collections, setCollections] = useState([])
   const sidebarRef = useRef(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [sortBy, setSortBy] = useState('')
-  const navigate = useNavigate() // Initialize useNavigate
+  const navigate = useNavigate()
+  const { categoryId } = useParams()
+  const location = useLocation()
+  const queryParams = new URLSearchParams(location.search)
+  const categoryName = queryParams.get('name')
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -29,48 +34,24 @@ const CollectionPage = () => {
   }, [])
 
   useEffect(() => {
-    setTimeout(() => {
-      const fetchedCollections = [
-        {
-          _id: '1',
-          name: 'Stylish Jacket',
-          price: 149.99,
-          images: [
-            {
-              url: 'https://picsum.photos/id/1/500?random=1',
-              altText: 'Stylish Jacket',
-            },
-          ],
-        },
-        {
-          _id: '2',
-          name: 'Trendy T-shirt',
-          price: 49.99,
-          images: [
-            {
-              url: 'https://picsum.photos/id/2/500?random=2',
-              altText: 'Trendy T-shirt',
-            },
-          ],
-        },
-        {
-          _id: '3',
-          name: 'Casual Pants',
-          price: 79.99,
-          images: [
-            {
-              url: 'https://picsum.photos/id/3/500?random=3',
-              altText: 'Casual Pants',
-            },
-          ],
-        },
-        // Add more collections as needed
-      ]
-      setCollections(fetchedCollections)
-    }, 1000)
-  }, [])
+    const fetchCollections = async () => {
+      try {
+        const response = await axios.get(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/categories/${categoryId}/collections`
+        )
+        setCollections(response.data)
+      } catch (error) {
+        console.error('Error fetching collections:', error)
+      }
+    }
 
-  // Sort collections based on the selected option
+    if (categoryId) {
+      fetchCollections()
+    }
+  }, [categoryId])
+
   const sortedCollections = [...collections].sort((a, b) => {
     if (sortBy === 'price_asc') return a.price - b.price
     if (sortBy === 'price_desc') return b.price - a.price
@@ -79,14 +60,12 @@ const CollectionPage = () => {
     return 0
   })
 
-  // Handle product click
   const handleProductClick = (productId) => {
-    navigate(`/products/${productId}`) // Navigate to product details page
+    navigate(`/products/${productId}`)
   }
 
   return (
     <div className='flex flex-col lg:flex-row'>
-      {/** Mobile Filter Button */}
       <button
         onClick={handleSidebarToggle}
         className='lg:hidden border p-2 flex items-center justify-center'
@@ -94,31 +73,35 @@ const CollectionPage = () => {
         <FaFilter className='mr-2' /> Filters
       </button>
 
-      {/** Filter Sidebar */}
       <div
         ref={sidebarRef}
         className={`${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } fixed inset-y-0 z-40 left-0 bg-green-50 overflow-y-auto transition-transform duration-300 lg:static lg:translate-x-0 lg:z-0`}
       >
-        <FilterSidebar onClose={() => setIsSidebarOpen(false)} />
+        <FilterSidebar
+          collections={collections}
+          onClose={() => setIsSidebarOpen(false)}
+          onCollectionClick={(collection) =>
+            navigate(`/collections/${collection._id}`)
+          }
+        />
       </div>
 
-      {/** Main Content */}
       <div className='flex-grow p-4'>
-        {/** Top Bar with Sort Option */}
         <div className='flex justify-between items-center mb-6'>
-          <h1 className='text-2xl sm:text-3xl font-bold'>All Collections</h1>
+          <h1 className='text-2xl sm:text-3xl font-bold'>
+            {categoryName || 'All Collections'}
+          </h1>
           <SortOption sortBy={sortBy} setSortBy={setSortBy} />
         </div>
 
-        {/** Product Grid */}
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
           {sortedCollections.map((collection) => (
             <div
               key={collection._id}
               className='bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer'
-              onClick={() => handleProductClick(collection._id)} // Add click handler
+              onClick={() => handleProductClick(collection._id)}
             >
               <img
                 src={collection.images[0].url}

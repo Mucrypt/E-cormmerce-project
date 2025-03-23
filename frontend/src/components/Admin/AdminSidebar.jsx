@@ -10,6 +10,7 @@ import {
   FaFileAlt,
   FaSignOutAlt,
   FaBullhorn,
+  FaLayerGroup, // Add this icon for collections
 } from 'react-icons/fa'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 
@@ -112,6 +113,19 @@ const AdminSidebar = () => {
           >
             <FaTags />
             <span>Categories</span>
+          </NavLink>
+
+          {/* Collections */}
+          <NavLink
+            to='/admin/collections'
+            className={({ isActive }) =>
+              isActive
+                ? 'bg-gray-700 text-white py-3 px-4 rounded-md flex items-center space-x-2'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded-md flex items-center space-x-2'
+            }
+          >
+            <FaLayerGroup /> {/* Icon for collections */}
+            <span>Collections</span>
           </NavLink>
 
           {/* Inventory */}

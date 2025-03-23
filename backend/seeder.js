@@ -1,14 +1,13 @@
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const bcrypt = require('bcryptjs')
-const Product = require('./models/Product')
+const Product = require('./models/product')
 const Category = require('./models/Category')
-const Cart = require('./models/Cart')
+const Cart = require('./models/cart')
 const User = require('./models/Users')
 const products = require('./data/products')
 const categories = require('./data/categories')
-
-
+const { v4: uuidv4 } = require('uuid')
 
 dotenv.config()
 
@@ -44,7 +43,21 @@ const seedData = async () => {
     const userID = createdUser._id // Access _id directly from the createdUser object
 
     // Seed categories first
-    const createdCategories = await Category.insertMany(categories)
+  const createdCategories = await Category.insertMany(
+    categories.map((category) => ({
+      ...category,
+      subcategories: category.subcategories.map((subcategory) => ({
+        id: subcategory.id, // Preserve the `id` field
+        name: subcategory.name,
+        image: subcategory.image,
+      })),
+      collections: category.collections.map((collection) => ({
+        _id: new mongoose.Types.ObjectId(), // Generate a new ObjectId for collections
+        name: collection.name,
+        image: collection.image,
+      })),
+    }))
+  )
 
     // Map category names to their ObjectIds for easy lookup
     const categoryMap = createdCategories.reduce((map, category) => {

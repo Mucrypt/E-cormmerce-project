@@ -1,10 +1,10 @@
 const express = require('express')
-const mongoose = require('mongoose') // Import mongoose
+const mongoose = require('mongoose')
 const Category = require('../models/Category')
 const {
   authMiddleware,
   adminMiddleware,
-} = require('../middleware/authMiddleware') // Import both middlewares
+} = require('../middleware/authMiddleware')
 const router = express.Router()
 
 // Helper function to validate ObjectId
@@ -12,13 +12,10 @@ const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id)
 }
 
-//@Route Create a category (Admin only)
-//@desc Create a new category
-//@route POST /api/categories
-//@access Private/Admin
+// Create a category (Admin only)
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, subcategories, image, status } = req.body
+    const { name, description, subcategories = [], image, status } = req.body
 
     // Check if the category already exists
     const existingCategory = await Category.findOne({ name })
@@ -36,7 +33,6 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
     })
 
     await category.save()
-
     res.status(201).json(category)
   } catch (error) {
     res.status(400).json({ error: error.message })
@@ -44,9 +40,6 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
 })
 
 // Get all categories (Public)
-// @desc Get all categories
-// @route GET /api/categories
-// @access Public
 router.get('/', async (req, res) => {
   try {
     const categories = await Category.find().populate('products', 'name price')
@@ -57,11 +50,12 @@ router.get('/', async (req, res) => {
 })
 
 // Get a single category by ID (Public)
-// @desc Get a single category by ID
-// @route GET /api/categories/:id
-// @access Public
 router.get('/:id', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid category ID' })
+    }
+
     const category = await Category.findById(req.params.id).populate(
       'products',
       'name price'
@@ -77,23 +71,34 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+// Get collections for a specific category (Public)
+router.get('/:id/collections', async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id)
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' })
+    }
+    res.status(200).json(category.collections || [])
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 // Update a category by ID (Admin only)
-// @desc Update a category by ID
-// @route PUT /api/categories/:id
-// @access Private/Admin
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid category ID' })
+    }
+
     const { name, description, subcategories, image, status } = req.body
 
-    // Find the category
     const category = await Category.findById(req.params.id)
-
     if (!category) {
       return res.status(404).json({ error: 'Category not found' })
     }
 
     // Update the category
-   
     category.name = name || category.name
     category.description = description || category.description
     category.subcategories = subcategories || category.subcategories
@@ -101,7 +106,6 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     category.status = status || category.status
 
     await category.save()
-
     res.status(200).json(category)
   } catch (error) {
     res.status(400).json({ error: error.message })
@@ -109,14 +113,13 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
 })
 
 // Delete a category by ID (Admin only)
-// @desc Delete a category by ID
-// @route DELETE /api/categories/:id
-// @access Private/Admin
-
 router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id)
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid category ID' })
+    }
 
+    const category = await Category.findByIdAndDelete(req.params.id)
     if (!category) {
       return res.status(404).json({ error: 'Category not found' })
     }

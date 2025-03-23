@@ -65,7 +65,63 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     console.error('Error deleting order:', error);
     res.status(500).json({ message: 'Server Error' });
   }
-});
+})
 
+//@route PUT /api/admin/orders/:id/deliver
+//desc Mark order as delivered (Admin only)
+//access Private
+router.put('/:id/deliver', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+    if (order) {
+        order.status = 'Delivered'
+        order.isDelivered = true
+        order.deliveredAt = Date.now()
+
+        const updatedOrder = await order.save()
+        res.json({ order: updatedOrder })
+    } else {
+      res.status(404).json({ message: 'Order not found' })
+    }
+  } catch (error) {
+    console.error('Error updating order:', error)
+    res.status(500).json({ message: 'Server Error' })
+  }
+})
+
+router.get(
+  '/total-sales',
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    try {
+      const totalSales = await Order.aggregate([
+        {
+          $match: {
+            $or: [
+              { status: 'Delivered' }, // Include delivered orders
+              { status: 'Paid' }, // Include paid orders
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalSales: { $sum: '$totalPrice' }, // Sum up totalPrice for matching orders
+          },
+        },
+      ])
+
+      console.log('Aggregation Result:', totalSales) // Debugging line
+
+      res.json({
+        totalSales: totalSales.length > 0 ? totalSales[0].totalSales : 0,
+      })
+    } catch (error) {
+      console.error('Error calculating total sales:', error)
+      res.status(500).json({ message: 'Server Error' })
+    }
+  }
+)
 
 module.exports = router

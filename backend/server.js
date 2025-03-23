@@ -13,6 +13,10 @@ const subscriberRoutes = require('./routes/subscriberRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const productAdminRoutes = require('./routes/productAdminRoutes')
 const adminOrderRoutes = require('./routes/adminOrderRoutes')
+const collectionsRoutes = require('./routes/collectionsRoutes'); // Import collectionsRoutes
+
+
+
 
 // Load environment variables
 dotenv.config()
@@ -44,6 +48,7 @@ app.use('/api', subscriberRoutes) // Mount subscriberRoutes at /api
 app.use('/api/admin', adminRoutes) // Mount adminRoutes at /api/admin
 app.use('/api/admin', productAdminRoutes) // Mount productAdminRoutes at /api/admin
 app.use('/api/admin/orders', adminOrderRoutes) // Mount adminOrderRoutes at /api/admin/orders
+app.use('/api/collections', collectionsRoutes); // Mount collectionsRoutes at /api/collections
 
 // Error handling middleware (must be after all routes)
 app.use((err, req, res, next) => {

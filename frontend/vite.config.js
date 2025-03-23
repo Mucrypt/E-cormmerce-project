@@ -13,4 +13,16 @@ export default defineConfig({
       },
     }),
   ],
+  esbuild: {
+    loader: 'jsx', // Treat .js files as JSX
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000', // Backend server URL
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })

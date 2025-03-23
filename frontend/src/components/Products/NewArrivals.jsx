@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { FaAngleRight, FaAngleLeft } from 'react-icons/fa6'
+import { FaAngleRight, FaAngleLeft, FaStar, FaHeart } from 'react-icons/fa6'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 const NewArrivals = () => {
   const [isDragging, setIsDragging] = useState(false)
@@ -9,115 +11,42 @@ const NewArrivals = () => {
   const [showRightButton, setShowRightButton] = useState(true)
   const scrollContainerRef = useRef(null)
 
-  const NewArrivals = [
-    {
-      _id: '1',
-      name: 'Stylish Jacket',
-      price: 149.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/1/500?random=1',
-          altText: 'Stylish Jacket',
-        },
-      ],
-    },
-    {
-      _id: '2',
-      name: 'Trendy T-shirt',
-      price: 49.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/2/500?random=2',
-          altText: 'Trendy T-shirt',
-        },
-      ],
-    },
-    {
-      _id: '3',
-      name: 'Stylish Jacket',
-      price: 149.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/3/500?random=3',
-          altText: 'Stylish Jacket',
-        },
-      ],
-    },
-    {
-      _id: '4',
-      name: 'Trendy T-shirt',
-      price: 49.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/4/500?random=4',
-          altText: 'Trendy T-shirt',
-        },
-      ],
-    },
-    {
-      _id: '5',
-      name: 'Stylish Jacket',
-      price: 149.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/5/500?random=5',
-          altText: 'Stylish Jacket',
-        },
-      ],
-    },
-    {
-      _id: '6',
-      name: 'Trendy T-shirt',
-      price: 49.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/6/500?random=6',
-          altText: 'Trendy T-shirt',
-        },
-      ],
-    },
-    {
-      _id: '7',
-      name: 'Stylish Jacket',
-      price: 149.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/7/500?random=7',
-          altText: 'Stylish Jacket',
-        },
-      ],
-    },
-    {
-      _id: '8',
-      name: 'Trendy T-shirt',
-      price: 49.99,
-      images: [
-        {
-          url: 'https://picsum.photos/id/8/500?random=8',
-          altText: 'Trendy T-shirt',
-        },
-      ],
-    },
-  ]
+  const [NewArrivals, setNewArrivals] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  // Handle mouse down event to start dragging
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchNewArrivals = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/products/new-arrivals`
+        )
+        setNewArrivals(response.data)
+      } catch (error) {
+        console.error('Error fetching new arrivals:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchNewArrivals()
+  }, [])
+
   const handleMouseDown = (e) => {
     setIsDragging(true)
     setStartX(e.pageX - scrollContainerRef.current.offsetLeft)
     setScrollLeft(scrollContainerRef.current.scrollLeft)
   }
 
-  // Handle mouse leave event to stop dragging
   const handleMouseLeave = () => {
     setIsDragging(false)
   }
 
-  // Handle mouse up event to stop dragging
   const handleMouseUp = () => {
     setIsDragging(false)
   }
 
-  // Handle mouse move event to scroll while dragging
   const handleMouseMove = (e) => {
     if (!isDragging) return
     e.preventDefault()
@@ -126,21 +55,18 @@ const NewArrivals = () => {
     scrollContainerRef.current.scrollLeft = scrollLeft - walk
   }
 
-  // Scroll left
   const scrollLeftHandler = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' })
     }
   }
 
-  // Scroll right
   const scrollRightHandler = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' })
     }
   }
 
-  // Check if the container can scroll left or right
   const updateScrollButtons = () => {
     if (scrollContainerRef.current) {
       setShowLeftButton(scrollContainerRef.current.scrollLeft > 0)
@@ -152,27 +78,28 @@ const NewArrivals = () => {
     }
   }
 
-  // Update scroll buttons on scroll
   useEffect(() => {
     const container = scrollContainerRef.current
     if (container) {
       container.addEventListener('scroll', updateScrollButtons)
       return () => container.removeEventListener('scroll', updateScrollButtons)
     }
-  }, [])
+  }, [NewArrivals])
+
+  if (loading) {
+    return <p>Loading new arrivals...</p>
+  }
 
   return (
     <section className='py-12'>
       <div className='container mx-auto text-center mb-10 relative bg-green-50'>
-        <h2 className='text-3xl font-bold mb-4'>Explore New Arrivals</h2>
+        <h2 className='text-3xl font-bold mb-8'>Explore New Arrivals</h2>
         <p className='text-gray-600 text-lg mb-8'>
           Shop the latest products that have just arrived at our store.
         </p>
       </div>
 
-      {/** Scrollable Content Container */}
       <div className='container mx-auto relative'>
-        {/** Scroll Buttons */}
         {showLeftButton && (
           <div className='absolute top-1/2 left-0 transform -translate-y-1/2 z-10'>
             <button
@@ -196,7 +123,6 @@ const NewArrivals = () => {
           </div>
         )}
 
-        {/** Scrollable Content */}
         <div
           ref={scrollContainerRef}
           className='overflow-x-auto scroll-smooth scrollbar-hide scroll-snap-x mandatory'
@@ -206,24 +132,82 @@ const NewArrivals = () => {
           onMouseMove={handleMouseMove}
         >
           <div className='flex space-x-6 px-6 py-4'>
-            {NewArrivals.map((product) => (
-              <div
-                key={product._id}
-                className='w-64 flex-shrink-0 relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 scroll-snap-align-start'
-              >
-                <img
-                  src={product.images[0].url}
-                  alt={product.images[0].altText}
-                  className='w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-105'
-                />
-                <div className='p-4 bg-white'>
-                  <h3 className='text-lg font-semibold text-gray-800 mb-2'>
-                    {product.name}
-                  </h3>
-                  <p className='text-gray-600'>${product.price.toFixed(2)}</p>
-                </div>
-              </div>
-            ))}
+            {NewArrivals.length > 0 ? (
+              NewArrivals.map((product) => {
+                const discountPercentage = Math.round(
+                  ((product.price - product.discountPrice) / product.price) *
+                    100
+                )
+
+                return (
+                  <div
+                    key={product._id}
+                    className='w-64 flex-shrink-0 relative group overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 scroll-snap-align-start'
+                    onClick={() => navigate(`/product/${product._id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {product.discountPrice && (
+                      <div className='absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-full'>
+                        {discountPercentage}% OFF
+                      </div>
+                    )}
+
+                    <button className='absolute top-2 left-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors'>
+                      <FaHeart className='text-gray-600' />
+                    </button>
+
+                    <img
+                      src={product.images[0].url}
+                      alt={product.images[0].altText}
+                      className='w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-105'
+                    />
+
+                    <div className='p-4 bg-white'>
+                      <h3 className='text-lg font-semibold text-gray-800 mb-2'>
+                        {product.name}
+                      </h3>
+
+                      <div className='flex items-center mb-2'>
+                        <div className='flex text-yellow-400'>
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar
+                              key={i}
+                              className={
+                                i < product.rating
+                                  ? 'fill-current'
+                                  : 'fill-gray-300'
+                              }
+                            />
+                          ))}
+                        </div>
+                        <span className='text-sm text-gray-600 ml-2'>
+                          ({product.numReviews} reviews)
+                        </span>
+                      </div>
+
+                      <div className='flex items-center mb-2'>
+                        {product.discountPrice ? (
+                          <>
+                            <span className='text-lg font-bold text-gray-800'>
+                              ${product.discountPrice.toFixed(2)}
+                            </span>
+                            <span className='text-sm text-gray-500 line-through ml-2'>
+                              ${product.price.toFixed(2)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className='text-lg font-bold text-gray-800'>
+                            ${product.price.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <p>No new arrivals found.</p>
+            )}
           </div>
         </div>
       </div>

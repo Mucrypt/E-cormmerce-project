@@ -1,73 +1,58 @@
-import { FaStar, FaStarHalf } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import { FaStar, FaHeart } from 'react-icons/fa'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
-const GridProduct  = () => {
-  // Placeholder data for the product grid
-  const products = [
-    {
-      _id: '1',
-      image: 'https://picsum.photos/id/101/800',
-      name: 'Elegant Leather Jacket',
-      price: 299.99,
-      rating: 4.8,
-      reviews: 120,
-    },
-    {
-      _id: '2',
-      image: 'https://picsum.photos/id/102/800',
-      name: 'Casual Sneakers',
-      price: 99.99,
-      rating: 4.5,
-      reviews: 95,
-    },
-    {
-      _id: '3',
-      image: 'https://picsum.photos/id/103/800',
-      name: 'Stylish Backpack',
-      price: 149.99,
-      rating: 4.7,
-      reviews: 80,
-    },
-    {
-      _id: '4',
-      image: 'https://picsum.photos/id/104/800',
-      name: 'Classic Watch',
-      price: 199.99,
-      rating: 4.9,
-      reviews: 150,
-    },
-    {
-      _id: '5',
-      image: 'https://picsum.photos/id/110/800',
-      name: 'Trendy Sunglasses',
-      price: 79.99,
-      rating: 4.6,
-      reviews: 65,
-    },
-    {
-      _id: '6',
-      image: 'https://picsum.photos/id/106/800',
-      name: 'Premium Headphones',
-      price: 249.99,
-      rating: 4.8,
-      reviews: 200,
-    },
-    {
-      _id: '7',
-      image: 'https://picsum.photos/id/107/800',
-      name: 'Designer Handbag',
-      price: 349.99,
-      rating: 4.9,
-      reviews: 180,
-    },
-    {
-      _id: '8',
-      image: 'https://picsum.photos/id/108/800',
-      name: 'Smartphone Case',
-      price: 29.99,
-      rating: 4.4,
-      reviews: 50,
-    },
-  ]
+const GridProduct = () => {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+
+  // Fetch products from the backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/products`,
+          {
+            params: {
+              page: 1, // Default page
+              limit: 8, // Default limit
+            },
+          }
+        )
+        setProducts(response.data.products)
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  // Skeleton Loading Component
+  const SkeletonLoader = () => {
+    return (
+      <div className='bg-white rounded-xl shadow-lg overflow-hidden animate-pulse'>
+        <div className='relative h-64 bg-gray-200'></div>
+        <div className='p-6'>
+          <div className='h-6 bg-gray-200 rounded mb-4'></div>
+          <div className='flex items-center mb-4'>
+            <div className='flex space-x-1'>
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className='h-5 w-5 bg-gray-200 rounded'></div>
+              ))}
+            </div>
+            <div className='h-4 w-16 bg-gray-200 rounded ml-2'></div>
+          </div>
+          <div className='h-6 bg-gray-200 rounded mb-4'></div>
+          <div className='h-10 bg-gray-200 rounded'></div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <section className='py-16 bg-gradient-to-b from-green-50 to-green-50'>
@@ -76,44 +61,91 @@ const GridProduct  = () => {
           Explore More Products
         </h2>
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-          {products.map((product) => (
-            <div
-              key={product._id}
-              className='bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden group'
-            >
-              <div className='relative h-64 overflow-hidden'>
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className='w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110'
-                />
-                <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300' />
-              </div>
-              <div className='p-6'>
-                <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                  {product.name}
-                </h3>
-                <div className='flex items-center mb-4'>
-                  <div className='text-yellow-400 flex items-center gap-1'>
-                    <FaStar />
-                    <FaStar />
-                    <FaStar />
-                    <FaStar />
-                    <FaStarHalf />
+          {loading ? (
+            // Display skeleton loaders while loading
+            [...Array(8)].map((_, index) => <SkeletonLoader key={index} />)
+          ) : products.length > 0 ? (
+            // Display actual products once loaded
+            products.map((product) => {
+              const discountPercentage = Math.round(
+                ((product.price - product.discountPrice) / product.price) * 100
+              )
+
+              return (
+                <div
+                  key={product._id}
+                  className='bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden group'
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {product.discountPrice && (
+                    <div className='absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-full'>
+                      {discountPercentage}% OFF
+                    </div>
+                  )}
+
+                  <button className='absolute top-2 left-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors'>
+                    <FaHeart className='text-gray-600' />
+                  </button>
+
+                  <div className='relative h-64 overflow-hidden'>
+                    <img
+                      src={product.images[0].url} // Assuming images is an array with a URL field
+                      alt={product.images[0].altText || product.name}
+                      className='w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105'
+                    />
                   </div>
-                  <span className='text-sm text-gray-500 ml-2'>
-                    ({product.reviews} reviews)
-                  </span>
+
+                  <div className='p-6'>
+                    <h3 className='text-xl font-semibold text-gray-900 mb-2'>
+                      {product.name}
+                    </h3>
+
+                    <div className='flex items-center mb-4'>
+                      <div className='flex text-yellow-400'>
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar
+                            key={i}
+                            className={
+                              i < product.rating
+                                ? 'fill-current'
+                                : 'fill-gray-300'
+                            }
+                          />
+                        ))}
+                      </div>
+                      <span className='text-sm text-gray-500 ml-2'>
+                        ({product.numReviews} reviews)
+                      </span>
+                    </div>
+
+                    <div className='flex items-center mb-4'>
+                      {product.discountPrice ? (
+                        <>
+                          <span className='text-2xl font-bold text-[var(--color-primary)]'>
+                            ${product.discountPrice.toFixed(2)}
+                          </span>
+                          <span className='text-sm text-gray-500 line-through ml-2'>
+                            ${product.price.toFixed(2)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className='text-2xl font-bold text-[var(--color-primary)]'>
+                          ${product.price.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+
+                    <button className='w-full bg-defaul-button text-white py-3 rounded-lg hover:bg-hero-button-hover transition-colors shadow-lg hover:shadow-xl'>
+                      Add to Cart
+                    </button>
+                  </div>
                 </div>
-                <p className='text-2xl font-bold text-[var(--color-primary)] mb-4'>
-                  ${product.price.toFixed(2)}
-                </p>
-                <button className='w-full bg-defaul-button text-white py-3 rounded-lg hover:bg-hero-button-hover transition-colors shadow-lg hover:shadow-xl'>
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          ))}
+              )
+            })
+          ) : (
+            <p className='text-center col-span-full'>No products found.</p>
+          )}
         </div>
       </div>
     </section>

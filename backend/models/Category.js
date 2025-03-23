@@ -13,7 +13,23 @@ const categorySchema = new mongoose.Schema(
       trim: true,
     },
     subcategories: {
-      type: [String], // Array of subcategory names
+      type: [
+        {
+          id: String, // Explicitly define the `id` field
+          name: String,
+          image: String,
+        },
+      ],
+      default: [],
+    },
+    collections: {
+      type: [
+        {
+          _id: String, // Change this to String to accept UUIDs
+          name: String, // Collection name
+          image: String, // Collection image URL
+        },
+      ],
       default: [],
     },
     image: {
@@ -32,7 +48,7 @@ const categorySchema = new mongoose.Schema(
     products: [
       {
         type: mongoose.Schema.Types.ObjectId, // Reference to Product model
-        ref: 'Products', // Name of the referenced model
+        ref: 'Product', // Name of the referenced model
       },
     ],
   },
