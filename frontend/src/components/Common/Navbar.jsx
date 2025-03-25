@@ -1,3 +1,4 @@
+// ✅ Clean and Fully Functional Navbar with Dynamic Cart Count
 import { Link } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import {
@@ -13,19 +14,22 @@ import {
   IoIosArrowDown,
 } from 'react-icons/io'
 import axios from 'axios'
-import CartDrower from '../Layout/CartDrower'
+import CartDrawer from '../Layout/CartDrower'
+import { useSelector } from 'react-redux'
 
 const Navbar = () => {
-  const [drowerOpen, setDrowerOpen] = useState(false)
-  const [navDrowerOpen, setNavDrowerOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [navDrawerOpen, setNavDrawerOpen] = useState(false)
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [openCategoryId, setOpenCategoryId] = useState(null)
 
   const categoriesRef = useRef(null)
+  const { cart } = useSelector((state) => state.cart)
+  const cartCount =
+    cart?.products?.reduce((sum, item) => sum + item.quantity, 0) || 0
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -39,7 +43,6 @@ const Navbar = () => {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -56,8 +59,8 @@ const Navbar = () => {
     fetchCategories()
   }, [])
 
-  const toggleNavDrower = () => setNavDrowerOpen(!navDrowerOpen)
-  const toggleCartDrower = () => setDrowerOpen(!drowerOpen)
+  const toggleNavDrawer = () => setNavDrawerOpen(!navDrawerOpen)
+  const toggleCartDrawer = () => setDrawerOpen(!drawerOpen)
 
   const scrollCategories = (direction) => {
     if (categoriesRef.current) {
@@ -77,7 +80,15 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className='container mx-auto flex flex-col items-center justify-between py-4 px-6 relative z-50'>
+      {drawerOpen && (
+        <div className='fixed inset-0 bg-black bg-opacity-40 z-40 transition-opacity duration-300'></div>
+      )}
+
+      <nav
+        className={`container mx-auto flex flex-col items-center justify-between py-4 px-6 relative z-50 ${
+          drawerOpen ? 'pointer-events-none blur-sm' : ''
+        }`}
+      >
         {/* Top Row */}
         <div className='w-full flex items-center justify-between mb-4'>
           <Link to='/' className='text-3xl font-medium z-50'>
@@ -108,17 +119,19 @@ const Navbar = () => {
               <HiOutlineUser className='text-gray-700 h-6 w-6' />
             </Link>
             <button
-              onClick={toggleCartDrower}
+              onClick={toggleCartDrawer}
               className='relative hover:text-black'
               aria-label='Open cart'
             >
               <HiOutlineShoppingBag className='h-6 w-6 text-gray-700' />
-              <span className='absolute -top-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5'>
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className='absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5'>
+                  {cartCount}
+                </span>
+              )}
             </button>
             <button
-              onClick={toggleNavDrower}
+              onClick={toggleNavDrawer}
               className='md:hidden'
               aria-label='Open navigation menu'
             >
@@ -188,7 +201,6 @@ const Navbar = () => {
             <IoIosArrowForward className='text-gray-700 h-6 w-6' />
           </button>
 
-          {/* Full Width Dropdown */}
           {selectedCategory?.subcategories?.length > 0 && (
             <div className='dropdown-full absolute top-full left-0 w-full bg-white shadow-xl z-50 border-t border-gray-200'>
               <div className='container mx-auto px-6 py-4'>
@@ -210,16 +222,15 @@ const Navbar = () => {
         </div>
       </nav>
 
-      <CartDrower drowerOpen={drowerOpen} toggleCartDrower={toggleCartDrower} />
+      <CartDrawer drawerOpen={drawerOpen} toggleCartDrawer={toggleCartDrawer} />
 
-      {/* Mobile Drawer */}
       <div
         className={`fixed top-0 left-0 w-3/4 h-full z-50 bg-white shadow-lg transform transition-transform duration-300 ${
-          navDrowerOpen ? 'translate-x-0' : '-translate-x-full'
+          navDrawerOpen ? 'translate-x-0' : '-translate-x-full'
         } md:hidden`}
       >
         <div className='flex justify-end p-4'>
-          <button onClick={toggleNavDrower} aria-label='Close navigation menu'>
+          <button onClick={toggleNavDrawer} aria-label='Close navigation menu'>
             <IoMdClose className='h-6 w-6 text-gray-700' />
           </button>
         </div>
@@ -253,7 +264,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Hide Scrollbar */}
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;

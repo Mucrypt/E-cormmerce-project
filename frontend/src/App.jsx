@@ -32,6 +32,7 @@ import AdminDashboard from './pages/AdminPages/AdminDashboard'
 import {Provider} from 'react-redux'
 import store from './redux/store'
 import ProductDetailsPage from "./pages/ProductDetailsPage"
+import AssignToCollectionPage from './pages/AdminPages/AssignToCollectionPage'
 
 
 
@@ -74,6 +75,11 @@ function App() {
             <Route path='categories' element={<AdminCategoriesPage />} />
             <Route path='analytics' element={<AdminAnalyticsPage />} />
             <Route path='settings' element={<AdminSettingsPage />} />
+            <Route
+              path='collections-assign'
+              element={<AssignToCollectionPage />}
+            />
+
             <Route path='reports' element={<AdminReportsPage />} />
             <Route path='content' element={<AdminContentPage />} />
             <Route path='marketing' element={<AdminMarketingPage />} />

@@ -382,70 +382,70 @@ const productSlice = createSlice({
     builder
       // Fetch Products
       .addCase(fetchProducts.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.loading = true
+        state.error = null
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
-        state.loading = false;
-        state.products = action.payload.products;
+        state.loading = false
+        state.products = action.payload.products
       })
       .addCase(fetchProducts.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
+        state.loading = false
+        state.error = action.payload.message
       })
 
       // Fetch Product by ID
       .addCase(fetchProductById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.loading = true
+        state.error = null
       })
       .addCase(fetchProductById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.product = action.payload;
+        state.loading = false
+        state.product = action.payload
       })
       .addCase(fetchProductById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
+        state.loading = false
+        state.error = action.payload.message
       })
 
       // Add Review
       .addCase(addReview.fulfilled, (state, action) => {
-        state.product = action.payload;
+        state.product = action.payload
       })
 
       // Fetch Reviews
       .addCase(fetchProductReviews.fulfilled, (state, action) => {
-        state.reviews = action.payload.reviews;
+        state.reviews = action.payload.reviews
       })
 
       // Fetch Top-Rated Products
       .addCase(fetchTopRatedProducts.fulfilled, (state, action) => {
-        state.topRatedProducts = action.payload;
+        state.topRatedProducts = action.payload
       })
 
       // Fetch Featured Products
       .addCase(fetchFeaturedProducts.fulfilled, (state, action) => {
-        state.featuredProducts = action.payload;
+        state.featuredProducts = action.payload
       })
 
       // Fetch New Arrivals
       .addCase(fetchNewArrivals.fulfilled, (state, action) => {
-        state.newArrivals = action.payload;
+        state.newArrivals = action.payload
       })
 
       // Fetch Best Sellers
       .addCase(fetchBestSellers.fulfilled, (state, action) => {
-        state.bestSellers = action.payload;
+        state.bestSellers = action.payload
       })
 
       // Fetch Product Statistics
       .addCase(fetchProductStats.fulfilled, (state, action) => {
-        state.productStats = action.payload;
+        state.productStats = action.payload
       })
 
       // Search Products
       .addCase(searchProducts.fulfilled, (state, action) => {
-        state.searchResults = action.payload;
+        state.searchResults = action.payload
       })
 
       // Bulk Update Products
@@ -455,22 +455,69 @@ const productSlice = createSlice({
           action.payload.ids.includes(product._id)
             ? { ...product, ...action.payload.updates }
             : product
-        );
+        )
       })
 
       // Fetch Similar Products
       .addCase(fetchSimilarProducts.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.loading = true
+        state.error = null
       })
       .addCase(fetchSimilarProducts.fulfilled, (state, action) => {
-        state.loading = false;
-        state.similarProducts = action.payload;
+        state.loading = false
+        state.similarProducts = action.payload
       })
       .addCase(fetchSimilarProducts.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
-      });
+        state.loading = false
+        state.error = action.payload.message
+      })
+    // Add inside the extraReducers chain
+    builder
+      // Add to Collection
+      .addCase(addToCollection.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(addToCollection.fulfilled, (state, action) => {
+        state.loading = false
+
+        // Update in list
+        state.products = state.products.map((product) =>
+          product._id === action.payload._id ? action.payload : product
+        )
+
+        // Update in detail view
+        if (state.product && state.product._id === action.payload._id) {
+          state.product = action.payload
+        }
+      })
+      .addCase(addToCollection.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload.message
+      })
+
+      // Remove from Collection
+      .addCase(removeFromCollection.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(removeFromCollection.fulfilled, (state, action) => {
+        state.loading = false
+
+        // Update in list
+        state.products = state.products.map((product) =>
+          product._id === action.payload._id ? action.payload : product
+        )
+
+        // Update in detail view
+        if (state.product && state.product._id === action.payload._id) {
+          state.product = action.payload
+        }
+      })
+      .addCase(removeFromCollection.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload.message
+      })
   },
 });
 

@@ -1,66 +1,98 @@
 import { RiDeleteBin3Line } from 'react-icons/ri'
+import { useDispatch } from 'react-redux'
+import PropTypes from 'prop-types'
+import {
+  removeFromCart,
+  updateCartItemQuantity,
+} from '../../redux/slices/cartSlice'
 
-const CartContents = () => {
-  const cartProducts = [
-    {
-      productId: 1,
+const CartContents = ({ cart, userId, guestId }) => {
+  const dispatch = useDispatch()
 
-      price: 100,
-      qty: 2,
-      Image: 'https://picsum.photos/id/1/200?random=1',
-      size: 'M',
-      color: 'red',
-      name: 'T-shirt',
-    },
-    {
-      productId: 2,
-      size: 'XL',
-      color: 'red',
-      name: 'Jeans',
-      price: 200,
-      qty: 1,
-      Image: 'https://picsum.photos/id/9/200?random=9',
-    },
-  ]
+  const handleQtyChange = (product, change) => {
+    const newQty = product.quantity + change
+    if (newQty >= 1) {
+      dispatch(
+        updateCartItemQuantity({
+          userId,
+          guestId,
+          productId: product.productId,
+          quantity: newQty,
+          size: product.size,
+          color: product.color,
+        })
+      )
+    }
+  }
+
+  const handleRemove = (product) => {
+    dispatch(
+      removeFromCart({
+        userId,
+        guestId,
+        productId: product.productId,
+        size: product.size,
+        color: product.color,
+      })
+    )
+  }
+
   return (
     <div>
-      {cartProducts.map((product, index) => (
+      {cart?.products?.map((product, index) => (
         <div
           key={index}
           className='flex items-center justify-between py-4 border-b'
         >
-          <div className='flex items-tarts'>
+          <div className='flex items-start'>
             <img
-              src={product.Image}
+              src={product.image}
               alt={product.name}
               className='w-20 h-24 object-cover mr-4 rounded-md'
             />
             <div>
-              <h3>{product.name}</h3>
+              <h3 className='font-semibold'>{product.name}</h3>
               <p className='text-sm text-gray-500'>
-                {product.size} | color: {product.color}
+                {product.size} | Color: {product.color}
               </p>
-              <div className='flex items-center mt-2'>
-                <button className='text-xl border rounded px-2 py-1 font-medium'>
+              <div className='flex items-center gap-2 mt-2'>
+                <button
+                  className='text-xl border rounded px-2 py-1 font-medium'
+                  onClick={() => handleQtyChange(product, -1)}
+                >
                   -
                 </button>
-                <span>{product.qty}</span>
-                <button className='text-xl border rounded px-2 py-1 font-medium'>
+                <span>{product.quantity}</span>
+                <button
+                  className='text-xl border rounded px-2 py-1 font-medium'
+                  onClick={() => handleQtyChange(product, 1)}
+                >
                   +
                 </button>
               </div>
             </div>
           </div>
-          <div>
-            <p>${product.price.toLocaleString()}</p>
-            <button>
-              <RiDeleteBin3Line className='h-6 w-6 text-red-700 ' />
+          <div className='text-right'>
+            <p className='font-semibold'>
+              ${(product.price * product.quantity).toLocaleString()}
+            </p>
+            <button
+              onClick={() => handleRemove(product)}
+              className='mt-2 inline-block'
+            >
+              <RiDeleteBin3Line className='h-6 w-6 text-red-700 hover:text-red-900 transition' />
             </button>
           </div>
         </div>
       ))}
     </div>
   )
+}
+
+CartContents.propTypes = {
+  cart: PropTypes.object.isRequired,
+  userId: PropTypes.string,
+  guestId: PropTypes.string,
 }
 
 export default CartContents

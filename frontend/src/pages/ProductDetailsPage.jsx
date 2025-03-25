@@ -1,3 +1,4 @@
+// ✅ Updated ProductDetailsPage from A to Z
 import { useState, useEffect } from 'react'
 import {
   FaStar,
@@ -14,14 +15,21 @@ import {
   FaInfoCircle,
 } from 'react-icons/fa'
 import { useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
+import { addToCart, fetchCart } from '../redux/slices/cartSlice'
 
 const ProductDetailsPage = () => {
-  const { id } = useParams() // Get product ID from URL
+  const { id } = useParams()
+  const dispatch = useDispatch()
+  const { user, guestId } = useSelector((state) => state.auth)
+  const userId = user?._id
+
   const [product, setProduct] = useState(null)
   const [activeImage, setActiveImage] = useState('')
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
+  const [selectedColor, setSelectedColor] = useState('')
   const [expandedSections, setExpandedSections] = useState({
     shipping: false,
     seller: false,
@@ -32,7 +40,6 @@ const ProductDetailsPage = () => {
   })
   const [isWishlisted, setIsWishlisted] = useState(false)
 
-  // Fetch product data based on ID
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -41,6 +48,7 @@ const ProductDetailsPage = () => {
         )
         setProduct(response.data)
         setActiveImage(response.data.images[0]?.url || '')
+        setSelectedColor(response.data.colors[0] || '')
       } catch (error) {
         console.error('Error fetching product details:', error)
       } finally {
@@ -51,18 +59,34 @@ const ProductDetailsPage = () => {
     fetchProduct()
   }, [id])
 
-  const handleMouseEnterProduct = (imgURL) => {
-    setActiveImage(imgURL)
+  const handleAddToCart = async (e, productId) => {
+    e.preventDefault()
+
+    try {
+      await dispatch(
+        addToCart({
+          userId,
+          guestId,
+          productId,
+          quantity,
+          size: 'M', // Adjust if dynamic sizes are implemented
+          color: selectedColor,
+        })
+      ).unwrap()
+
+      dispatch(fetchCart({ userId, guestId }))
+      alert('Added to cart!')
+    } catch (error) {
+      console.error(error)
+      alert(error?.message || 'Failed to add to cart')
+    }
   }
+
+  const handleMouseEnterProduct = (imgURL) => setActiveImage(imgURL)
 
   const handleBuyProduct = (e, productId) => {
     e.preventDefault()
     alert(`Buy product with ID: ${productId}`)
-  }
-
-  const handleAddToCart = (e, productId) => {
-    e.preventDefault()
-    alert(`Add to cart product with ID: ${productId}`)
   }
 
   const toggleSection = (section) => {
@@ -84,7 +108,6 @@ const ProductDetailsPage = () => {
   if (!product) {
     return <div className='text-center py-8'>Product not found.</div>
   }
-
   return (
     <div className='container mx-auto p-4 md:p-8'>
       <div className='min-h-[200px] flex flex-col lg:flex-row gap-8'>

@@ -1,3 +1,5 @@
+//backend/data/products.js
+const { v4: uuidv4 } = require('uuid') // Import uuid
 const products = [
   // Sports & Outdoors
   {

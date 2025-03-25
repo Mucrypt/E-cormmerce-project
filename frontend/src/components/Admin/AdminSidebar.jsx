@@ -205,6 +205,17 @@ const AdminSidebar = () => {
             <FaFileAlt />
             <span>Reports</span>
           </NavLink>
+          <NavLink
+            to='/admin/collections-assign'
+            className={({ isActive }) =>
+              isActive
+                ? 'bg-gray-700 text-white py-3 px-4 rounded-md flex items-center space-x-2'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded-md flex items-center space-x-2'
+            }
+          >
+            <FaLayerGroup />
+            <span>Assign Products</span>
+          </NavLink>
 
           {/* Support */}
           <NavLink
