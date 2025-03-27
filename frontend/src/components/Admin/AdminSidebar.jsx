@@ -22,7 +22,7 @@ const AdminSidebar = () => {
   }
 
   return (
-    <div className='p-6 bg-gray-700 text-white h-screen flex flex-col fixed w-full md:w-64'>
+    <div className='p-6 bg-superadmin-800 text-white h-screen flex flex-col fixed w-full bg-gray-700'>
       {/* Header */}
       <div className='mb-6'>
         <Link to='/admin' className='text-2xl font-semibold text-white'>

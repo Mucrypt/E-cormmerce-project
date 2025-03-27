@@ -99,7 +99,7 @@ const AssignToCollectionPage = () => {
   if (error) return <p className='p-6 text-red-500'>{error}</p>
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
+    <div className='p-6 bg-gray-50 rounded-lg shadow-md overflow-y-auto max-h-[calc(100vh-200px)]'>
       <h2 className='text-3xl font-bold mb-6 text-gray-800'>
         Assign Products to Collection
       </h2>
