@@ -29,25 +29,61 @@ const initialState = {
 }
 
 // Async thunk to log in a user
+// Updated loginUser thunk in authSlice.js
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (userData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/users/login`,
-        userData
-      )
-      localStorage.setItem('userInfo', JSON.stringify(response.data.user))
-      localStorage.setItem('userToken', response.data.token)
-      return response.data.user // Return the user data
+        userData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (status) => status < 500 // Don't reject for 4xx errors
+        }
+      );
+
+      // Handle non-2xx responses
+      if (response.status >= 400) {
+        return rejectWithValue({
+          message: response.data?.message || 'Login failed',
+          errors: response.data?.errors,
+          status: response.status
+        });
+      }
+
+      // Store token and user info
+      localStorage.setItem('userInfo', JSON.stringify(response.data.user));
+      localStorage.setItem('userToken', response.data.token);
+      
+      return response.data.user;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: 'Login failed' }
-      )
+      // Enhanced error handling
+      if (error.response) {
+        // The request was made and the server responded
+        return rejectWithValue({
+          message: error.response.data?.message || 'Login failed',
+          errors: error.response.data?.errors,
+          status: error.response.status
+        });
+      } else if (error.request) {
+        // The request was made but no response received
+        return rejectWithValue({
+          message: 'Network error - no response from server',
+          status: 0
+        });
+      } else {
+        // Something happened in setting up the request
+        return rejectWithValue({
+          message: error.message || 'Login configuration error',
+          status: -1
+        });
+      }
     }
   }
-)
-
+);
 // Async thunk to register a user
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
@@ -68,6 +104,36 @@ export const registerUser = createAsyncThunk(
     }
   }
 )
+
+// Async thunk to update user profile
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async ({ userId, updates }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('userToken');
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}`,
+        updates,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Update local storage with new user data
+      localStorage.setItem('userInfo', JSON.stringify(response.data.user));
+      
+      return response.data.user;
+    } catch (error) {
+      console.error('Profile update error:', error.response?.data);
+      return rejectWithValue(
+        error.response?.data || { message: 'Failed to update profile' }
+      );
+    }
+  }
+);
 
 // Create the auth slice
 const authSlice = createSlice({
@@ -113,6 +179,19 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload?.message || 'Registration failed'
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.loading = false
+        state.user = action.payload
+        state.error = null
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload?.message || 'Profile update failed'
       })
   },
 })

@@ -174,4 +174,42 @@ router.get('/profile', authMiddleware, async (req, res) => {
   }
 })
 
+// In your users routes file
+// Update user profile
+// PUT /api/users/:id
+//access 
+router.put('/:id', authMiddleware, async (req, res) => {
+  const { name, email, avatar } = req.body;
+
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user fields
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.avatar = avatar || user.avatar;
+
+    // Save the updated user
+    const updatedUser = await user.save();
+
+    // Return the updated user (excluding the password)
+    const userResponse = updatedUser.toObject();
+    delete userResponse.password;
+
+    res.json({ 
+      message: 'User updated successfully', 
+      user: userResponse 
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ 
+      message: 'Server Error', 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router

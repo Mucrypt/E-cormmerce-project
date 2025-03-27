@@ -1,4 +1,3 @@
-// ✅ Updated ProductDetailsPage from A to Z
 import { useState, useEffect } from 'react'
 import {
   FaStar,
@@ -18,6 +17,8 @@ import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
 import { addToCart, fetchCart } from '../redux/slices/cartSlice'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const ProductDetailsPage = () => {
   const { id } = useParams()
@@ -61,7 +62,6 @@ const ProductDetailsPage = () => {
 
   const handleAddToCart = async (e, productId) => {
     e.preventDefault()
-
     try {
       await dispatch(
         addToCart({
@@ -69,24 +69,22 @@ const ProductDetailsPage = () => {
           guestId,
           productId,
           quantity,
-          size: 'M', // Adjust if dynamic sizes are implemented
+          size: 'M',
           color: selectedColor,
         })
       ).unwrap()
 
       dispatch(fetchCart({ userId, guestId }))
-      alert('Added to cart!')
+      toast.success('🛒 Added to cart!', { position: 'top-right' })
     } catch (error) {
       console.error(error)
-      alert(error?.message || 'Failed to add to cart')
+      toast.error(error?.message || '❌ Failed to add to cart', { position: 'top-right' })
     }
   }
 
-  const handleMouseEnterProduct = (imgURL) => setActiveImage(imgURL)
-
   const handleBuyProduct = (e, productId) => {
     e.preventDefault()
-    alert(`Buy product with ID: ${productId}`)
+    toast.info(`🧾 Proceed to buy product ID: ${productId}`, { position: 'top-center' })
   }
 
   const toggleSection = (section) => {
@@ -97,17 +95,16 @@ const ProductDetailsPage = () => {
   }
 
   const toggleWishlist = () => {
+    const message = isWishlisted ? '💔 Removed from wishlist' : '❤️ Added to wishlist'
+    toast(message, { position: 'top-center' })
     setIsWishlisted((prev) => !prev)
-    alert(`Product ${isWishlisted ? 'removed from' : 'added to'} wishlist.`)
   }
 
-  if (loading) {
-    return <div className='text-center py-8'>Loading product details...</div>
-  }
+  const handleMouseEnterProduct = (imgURL) => setActiveImage(imgURL)
 
-  if (!product) {
-    return <div className='text-center py-8'>Product not found.</div>
-  }
+  if (loading) return <div className="text-center py-8">Loading product details...</div>
+  if (!product) return <div className="text-center py-8">Product not found.</div>
+  
   return (
     <div className='container mx-auto p-4 md:p-8'>
       <div className='min-h-[200px] flex flex-col lg:flex-row gap-8'>

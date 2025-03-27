@@ -1,53 +1,127 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/Users')
+const createHttpError = require('http-errors')
 
-// Middleware to verify JWT token
+// Configuration constants
+const TOKEN_HEADER = 'Authorization'
+const TOKEN_PREFIX = 'Bearer '
+const TOKEN_EXPIRY = '1h'
+
+/**
+ * Enhanced authentication middleware with:
+ * - Robust token validation
+ * - Comprehensive error handling
+ * - Detailed logging
+ * - Security best practices
+ */
+// Updated authMiddleware in backend
 const authMiddleware = async (req, res, next) => {
   try {
-    // Get the token from the Authorization header
-    const token = req.header('Authorization')?.replace('Bearer ', '')
-
-    if (!token) {
+    // 1. Validate Authorization header exists
+    const authHeader = req.header('Authorization');
+    if (!authHeader) {
       return res.status(401).json({
         success: false,
-        message: 'No token provided. Access denied.',
-      })
+        message: 'Authorization header is required'
+      });
     }
 
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    // 2. Verify Bearer token format
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token format. Use Bearer token'
+      });
+    }
 
-    // Find the user by the decoded ID
-    const user = await User.findById(decoded.id).select('-password') // Exclude the password field
+    // 3. Extract and validate token
+    const token = authHeader.substring(7).trim();
+    if (!token || token.split('.').length !== 3) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token structure'
+      });
+    }
+
+    // 4. Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET, {
+        algorithms: ['HS256'],
+        ignoreExpiration: false
+      });
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: err.name === 'TokenExpiredError' ? 
+          'Token expired' : 'Invalid token',
+        error: err.message
+      });
+    }
+
+    // 5. Find user
+    const user = await User.findById(decoded.id).select('-password');
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
-      })
+        message: 'User not found'
+      });
     }
 
-    // Attach the user to the request object
-    req.user = user
-    next()
+    req.user = user;
+    next();
   } catch (error) {
-    res.status(401).json({
+    console.error('Auth middleware error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Invalid or expired token.',
-      error: error.message,
-    })
+      message: 'Authentication failed'
+    });
+  }
+};
+
+/**
+ * Role-based access control middleware
+ * Supports multiple roles and hierarchical permissions
+ */
+const roleMiddleware = (requiredRoles = ['admin']) => {
+  return (req, res, next) => {
+    try {
+      if (!req.user) {
+        console.error('Role check failed - no user attached')
+        return next(createHttpError.Unauthorized('Authentication required'))
+      }
+
+      if (!Array.isArray(requiredRoles)) {
+        requiredRoles = [requiredRoles]
+      }
+
+      const hasRole = requiredRoles.some(
+        (role) => req.user.role === role || req.user.role === 'superadmin'
+      )
+
+      if (!hasRole) {
+        console.warn(`Unauthorized access attempt by ${req.user.email}`, {
+          required: requiredRoles,
+          actual: req.user.role,
+          path: req.path,
+        })
+        return next(createHttpError.Forbidden('Insufficient privileges'))
+      }
+
+      console.debug(
+        `Access granted to ${req.user.email} for ${requiredRoles.join(', ')}`
+      )
+      next()
+    } catch (error) {
+      console.error('Role verification error:', error)
+      next(createHttpError.InternalServerError('Access verification failed'))
+    }
   }
 }
 
-// Middleware to check if the user is an admin
-const adminMiddleware = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next() // User is an admin, proceed to the next middleware/route
-  } else {
-    res.status(403).json({
-      success: false,
-      message: 'Access denied. You are not authorized to perform this action.',
-    })
-  }
+module.exports = {
+  authMiddleware,
+  roleMiddleware,
+  adminMiddleware: roleMiddleware(['admin']), // Preset for admin-only
+  superAdminMiddleware: roleMiddleware(['superadmin']), // Preset for superadmin
 }
-
-module.exports = { authMiddleware, adminMiddleware }

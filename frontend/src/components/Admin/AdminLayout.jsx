@@ -52,7 +52,7 @@ const AdminLayout = () => {
       {/** Main Content */}
       <div className='flex-grow overflow-auto'>
         {/** Navbar */}
-        <div className='bg-gray-900  shadow-md p-4  '>
+        <div className='bg-gray-700  shadow-md p-4  '>
           <div className='flex justify-between items-center'>
             <h1 className='text-xl font-semibold text-white'>Dashboard</h1>
             <div className='flex items-center space-x-4'>

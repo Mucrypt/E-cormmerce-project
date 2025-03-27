@@ -1,52 +1,124 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa' // Social icons
-import { motion } from 'framer-motion' // For animations
-import { registerUser } from '../redux/slices/authSlice'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa'
+import { motion } from 'framer-motion'
+import { registerUser, loginUser } from '../redux/slices/authSlice'
 import { useDispatch, useSelector } from 'react-redux'
 
 const Register = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false) // Toggle password visibility
-  const [name, setName] = useState('')
-  const [localError, setLocalError] = useState('') // Local error handling
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [localError, setLocalError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Get the auth state from Redux
-  const { loading, error, user } = useSelector((state) => state.auth)
+  // Router hooks
+  const navigate = useNavigate()
+  const location = useLocation()
+  const redirect = new URLSearchParams(location.search).get('redirect') || '/'
+
+  // Redux state
+  const dispatch = useDispatch()
+  const { user, error: authError } = useSelector((state) => state.auth)
+
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name || !email || !password) {
-      setLocalError('Please fill in all fields.')
-    } else {
-      setLocalError('')
-      const userData = { name, email, password } // Correct payload for backend
-      console.log('Dispatching user data:', userData) // Log the data
-      dispatch(registerUser(userData))
+    setLocalError('')
+    setIsSubmitting(true)
+
+    // Client-side validation
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setLocalError('Please fill in all fields')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setLocalError('Passwords do not match')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setLocalError('Password must be at least 6 characters')
+      setIsSubmitting(false)
+      return
+    }
+
+    try {
+      // Register the user
+      const registerResult = await dispatch(
+        registerUser({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        })
+      )
+
+      if (registerUser.rejected.match(registerResult)) {
+        // Registration failed
+        setIsSubmitting(false)
+        return
+      }
+
+      // If registration successful, automatically log in
+      const loginResult = await dispatch(
+        loginUser({
+          email: formData.email,
+          password: formData.password,
+        })
+      )
+
+      if (loginUser.rejected.match(loginResult)) {
+        setLocalError(
+          'Registered successfully but failed to log in automatically'
+        )
+        setIsSubmitting(false)
+      }
+    } catch (err) {
+      console.error('Registration error:', err)
+      setLocalError('An unexpected error occurred')
+      setIsSubmitting(false)
     }
   }
 
-  // Redirect to login page after successful registration
+  // Redirect after successful login
   useEffect(() => {
     if (user) {
-      navigate('/login') // Redirect to login page
+      navigate(redirect)
     }
-  }, [user, navigate])
+  }, [user, navigate, redirect])
 
-  // Display backend errors in the UI
+  // Display backend errors
   useEffect(() => {
-    if (error) {
-      setLocalError(error)
+    if (authError) {
+      setLocalError(authError.message || authError)
     }
-  }, [error])
+  }, [authError])
 
   return (
     <div className='min-h-screen flex flex-col md:flex-row bg-gradient-to-r from-green-50 to-green-100 mt-6'>
-      {/** Left Side: Registration Form */}
+      {/* Left Side: Registration Form */}
       <div className='w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-12'>
         <motion.form
           initial={{ opacity: 0, y: 20 }}
@@ -54,51 +126,56 @@ const Register = () => {
           transition={{ duration: 0.5 }}
           onSubmit={handleSubmit}
           className='w-full max-w-md bg-white p-6 md:p-8 rounded-2xl border shadow-xl'
+          noValidate
         >
           <div className='flex justify-center mb-6'>
             <h2 className='text-2xl font-extrabold text-top-red'>MUKULAH</h2>
           </div>
           <h2 className='text-2xl md:text-3xl font-bold text-center mb-6'>
-            Hey there!
+            Create Your Account
           </h2>
           <p className='text-center text-gray-600 mb-6 md:mb-8'>
-            Create an account to get started
+            Join us to discover amazing products
           </p>
 
-          {/** Name Input */}
-          <div className='mb-6'>
+          {/* Name Input */}
+          <div className='mb-4'>
             <label htmlFor='name' className='block text-sm font-medium mb-2'>
-              Name
+              Full Name
             </label>
             <input
               type='text'
               id='name'
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              name='name'
+              value={formData.name}
+              onChange={handleChange}
               className='w-full p-2 md:p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all'
-              placeholder='Enter your name'
+              placeholder='Enter your full name'
               required
+              disabled={isSubmitting}
             />
           </div>
 
-          {/** Email Input */}
-          <div className='mb-6'>
+          {/* Email Input */}
+          <div className='mb-4'>
             <label htmlFor='email' className='block text-sm font-medium mb-2'>
-              Email
+              Email Address
             </label>
             <input
               type='email'
               id='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name='email'
+              value={formData.email}
+              onChange={handleChange}
               className='w-full p-2 md:p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all'
               placeholder='Enter your email'
               required
+              disabled={isSubmitting}
             />
           </div>
 
-          {/** Password Input */}
-          <div className='mb-6'>
+          {/* Password Input */}
+          <div className='mb-4'>
             <label
               htmlFor='password'
               className='block text-sm font-medium mb-2'
@@ -109,81 +186,110 @@ const Register = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 id='password'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                name='password'
+                value={formData.password}
+                onChange={handleChange}
                 className='w-full p-2 md:p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all'
                 placeholder='Enter your password'
                 required
+                minLength={6}
+                disabled={isSubmitting}
               />
               <button
                 type='button'
                 onClick={() => setShowPassword(!showPassword)}
                 className='absolute right-3 top-2 md:top-3 text-gray-500 hover:text-green-700'
+                disabled={isSubmitting}
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
 
-          {/** Error Message */}
+          {/* Confirm Password Input */}
+          <div className='mb-6'>
+            <label
+              htmlFor='confirmPassword'
+              className='block text-sm font-medium mb-2'
+            >
+              Confirm Password
+            </label>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id='confirmPassword'
+              name='confirmPassword'
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className='w-full p-2 md:p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all'
+              placeholder='Confirm your password'
+              required
+              minLength={6}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* Error Message */}
           {localError && (
-            <div className='mb-6 text-red-500 text-sm text-center'>
+            <div className='mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm'>
               {localError}
             </div>
           )}
 
-          {/** Sign Up Button */}
+          {/* Sign Up Button */}
           <div className='mb-6'>
             <button
               type='submit'
-              disabled={loading} // Disable button during loading
-              className='w-full p-2 md:p-3 bg-defaul-button hover:bg-hero-button-hover transition-all text-white rounded-lg font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed'
+              className={`w-full p-2 md:p-3 bg-defaul-button hover:bg-hero-button-hover transition-all text-white rounded-lg font-semibold shadow-lg hover:shadow-xl ${
+                isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+              }`}
+              disabled={isSubmitting}
             >
-              {loading ? 'Signing Up...' : 'Sign Up'}
+              {isSubmitting ? 'Creating Account...' : 'Sign Up'}
             </button>
           </div>
 
-          {/** Social Login Options */}
+          {/* Social Login Options */}
           <div className='mb-6'>
-            <p className='text-center text-gray-600 mb-4'>
-              Or sign up with social platforms
-            </p>
+            <p className='text-center text-gray-600 mb-4'>Or sign up with:</p>
             <div className='flex justify-center space-x-4'>
               <button
                 type='button'
                 className='p-2 md:p-3 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all'
+                disabled={isSubmitting}
               >
                 <FaGoogle className='text-lg md:text-xl' />
               </button>
               <button
                 type='button'
                 className='p-2 md:p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all'
+                disabled={isSubmitting}
               >
                 <FaFacebook className='text-lg md:text-xl' />
               </button>
               <button
                 type='button'
                 className='p-2 md:p-3 bg-black hover:bg-gray-900 text-white rounded-full shadow-lg hover:shadow-xl transition-all'
+                disabled={isSubmitting}
               >
                 <FaApple className='text-lg md:text-xl' />
               </button>
             </div>
           </div>
 
-          {/** Login Link */}
+          {/* Login Link */}
           <p className='text-center text-gray-600'>
-            Already have an account?{''}
+            Already have an account?{' '}
             <Link
-              to='/login'
-              className='text-defaul-button-colors hover:text-defaul-button-colors-hover font-semibold'
+              to={`/login?redirect=${encodeURIComponent(redirect)}`}
+              className='text-defaul-button hover:text-hero-button-hover font-semibold'
             >
-              Login
+              Log In
             </Link>
           </p>
         </motion.form>
       </div>
 
-      {/** Right Side: Hero Image (Hidden on Small Screens) */}
+      {/* Right Side: Hero Image */}
       <div className='hidden md:block w-1/2 bg-gradient-to-r from-green-50 to-defaul-button'>
         <div className='h-full flex flex-col justify-center items-center p-8 md:p-12'>
           <motion.img
@@ -200,7 +306,7 @@ const Register = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            Welcome!
+            Welcome Aboard!
           </motion.h2>
           <motion.p
             className='text-base md:text-lg text-white mt-2 md:mt-4 text-center'
@@ -208,7 +314,7 @@ const Register = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            Discover the best products and services tailored just for you.
+            Start your shopping journey with us today.
           </motion.p>
         </div>
       </div>

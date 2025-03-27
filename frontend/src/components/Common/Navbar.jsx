@@ -1,5 +1,5 @@
 // ✅ Clean and Fully Functional Navbar with Dynamic Cart Count
-import { Link } from 'react-router-dom'
+import { Link, } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import {
   HiOutlineUser,
@@ -15,7 +15,7 @@ import {
 } from 'react-icons/io'
 import axios from 'axios'
 import CartDrawer from '../Layout/CartDrower'
-import { useSelector } from 'react-redux'
+import {  useSelector } from 'react-redux'
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -24,6 +24,22 @@ const Navbar = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [openCategoryId, setOpenCategoryId] = useState(null)
+
+  /*
+  //search bar
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchTerm.trim()) {
+      navigate(`/collections/${searchTerm}`)
+      setSearchTerm('')
+    }
+  }
+
+  */
 
   const categoriesRef = useRef(null)
   const { cart } = useSelector((state) => state.cart)
@@ -110,11 +126,18 @@ const Navbar = () => {
           {/* Right Icons */}
           <div className='flex items-center space-x-4'>
             <Link
+              to='/superadmin'
+              className='block bg-black px-2 text-white rounded-md'
+            >
+              SuperAdmin
+            </Link>
+            <Link
               to='/admin'
               className='block bg-black px-2 text-white rounded-md'
             >
               Admin
             </Link>
+
             <Link to='/profile' className='hover:text-black'>
               <HiOutlineUser className='text-gray-700 h-6 w-6' />
             </Link>

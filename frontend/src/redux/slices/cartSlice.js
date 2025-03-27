@@ -111,22 +111,46 @@ export const removeFromCart = createAsyncThunk(
 // Merge guest cart into user cart
 export const mergeCart = createAsyncThunk(
   'cart/mergeCart',
-  async ({ user, guestId }, { rejectWithValue }) => {
+  async ({ guestId }, { getState, rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('userToken')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      // Get token from auth state or localStorage
+      const token =
+        getState().auth.user?.token || localStorage.getItem('userToken')
+
+      if (!token) {
+        throw new Error('No authentication token found')
+      }
+
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/cart/merge`,
-        { user, guestId },
-        { headers }
+        { guestId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
       )
-      return response.data
-    } catch (err) {
-      console.error(err)
-      return rejectWithValue(err.response?.data || 'Failed to merge carts')
+
+      // Debug logging
+      console.log('Merge cart response:', response.data)
+
+      return response.data.cart
+    } catch (error) {
+      // Enhanced error logging
+      console.error('Merge cart failed:', {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config,
+      })
+
+      return rejectWithValue(
+        error.response?.data || { message: 'Failed to merge carts' }
+      )
     }
   }
 )
+
 
 // Initial state for the cart slice
 const initialState = {
